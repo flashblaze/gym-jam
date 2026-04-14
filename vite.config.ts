@@ -2,8 +2,10 @@ import path from "node:path";
 
 import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
+import { TanStackRouterVite } from "@tanstack/router-vite-plugin";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import Icons from "unplugin-icons/vite";
+import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vite-plus";
 
 // https://vite.dev/config/
@@ -131,10 +133,41 @@ export default defineConfig({
     },
   },
   plugins: [
+    TanStackRouterVite({
+      routesDirectory: "./src/routes",
+      generatedRouteTree: "./src/routeTree.gen.ts",
+    }),
     react(),
     tailwindcss(),
     Icons({ compiler: "jsx", jsx: "react" }),
     babel({ presets: [reactCompilerPreset()] }),
+    VitePWA({
+      registerType: "autoUpdate",
+      includeAssets: ["favicon.svg"],
+      manifest: {
+        name: "Gym Jam",
+        short_name: "GymJam",
+        description: "Offline-first gym workout tracker",
+        theme_color: "#2563eb",
+        background_color: "#ffffff",
+        display: "standalone",
+        orientation: "portrait",
+        start_url: "/",
+        icons: [
+          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+          {
+            src: "/icons/icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+      },
+    }),
   ],
   resolve: {
     alias: {

@@ -1,0 +1,16 @@
+import { Outlet } from "@tanstack/react-router";
+
+import BottomNav from "./BottomNav";
+
+const AppShell = () => {
+  return (
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-white">
+      <main className="flex-1 overflow-y-auto">
+        <Outlet />
+      </main>
+      <BottomNav />
+    </div>
+  );
+};
+
+export default AppShell;
