@@ -45,45 +45,51 @@ const ExerciseDetailPage = () => {
     <div className="pb-6">
       <div className="px-4 pt-4">
         <Button
-          variant="subtle"
+          variant="default"
           size="compact-sm"
-          color="gray"
           leftSection={<IconSolarAltArrowLeftBroken />}
           onClick={() => void navigate({ to: "/exercises" })}
         >
           Back
         </Button>
-        <h1 className="mt-2 text-2xl font-semibold text-gray-900">{exercise.name}</h1>
-        <p className="mt-0.5 text-xs capitalize text-gray-500">{TYPE_LABELS[exercise.type]}</p>
+        <h1 className="mt-4 text-2xl font-bold tracking-tight text-[#d4d4e0]">{exercise.name}</h1>
+        <p className="mt-0.5 text-xs capitalize text-[#565670]">{TYPE_LABELS[exercise.type]}</p>
       </div>
 
       {history.length === 0 ? (
-        <p className="py-12 text-center text-sm text-gray-400">No history yet</p>
+        <p className="py-12 text-center text-sm text-[#565670]">No history yet</p>
       ) : (
         <>
           <dl className="grid grid-cols-2 gap-2 px-4 py-3">
             {isTimed ? (
-              <div className="rounded-xl bg-gray-50 px-3 py-2.5">
-                <dt className="text-[10px] uppercase tracking-wide text-gray-500">Best time</dt>
-                <dd className="mt-0.5 text-xl font-semibold text-gray-900">
+              <div className="rounded-xl border border-white/[0.06] bg-[#18182a] px-4 py-3">
+                <dt className="text-[10px] font-medium uppercase tracking-widest text-[#565670]">
+                  Best time
+                </dt>
+                <dd className="mt-1 text-2xl font-bold text-[#f59e0b]">
                   {formatDuration(bestTime)}
                 </dd>
                 {bestTimeEntry && (
-                  <p className="mt-0.5 text-[10px] text-gray-400">{bestTimeEntry.date}</p>
+                  <p className="mt-0.5 text-[10px] text-[#565670]">{bestTimeEntry.date}</p>
                 )}
               </div>
             ) : (
-              <div className="rounded-xl bg-gray-50 px-3 py-2.5">
-                <dt className="text-[10px] uppercase tracking-wide text-gray-500">Top weight</dt>
-                <dd className="mt-0.5 text-xl font-semibold text-gray-900">
-                  {topWeight} <span className="text-xs font-normal text-gray-500">kg</span>
+              <div className="rounded-xl border border-white/[0.06] bg-[#18182a] px-4 py-3">
+                <dt className="text-[10px] font-medium uppercase tracking-widest text-[#565670]">
+                  Top weight
+                </dt>
+                <dd className="mt-1 text-2xl font-bold text-[#f59e0b]">
+                  {topWeight}
+                  <span className="ml-1 text-sm font-normal text-[#565670]">kg</span>
                 </dd>
-                {topEntry && <p className="mt-0.5 text-[10px] text-gray-400">{topEntry.date}</p>}
+                {topEntry && <p className="mt-0.5 text-[10px] text-[#565670]">{topEntry.date}</p>}
               </div>
             )}
-            <div className="rounded-xl bg-gray-50 px-3 py-2.5">
-              <dt className="text-[10px] uppercase tracking-wide text-gray-500">Sessions</dt>
-              <dd className="mt-0.5 text-xl font-semibold text-gray-900">{history.length}</dd>
+            <div className="rounded-xl border border-white/[0.06] bg-[#18182a] px-4 py-3">
+              <dt className="text-[10px] font-medium uppercase tracking-widest text-[#565670]">
+                Sessions
+              </dt>
+              <dd className="mt-1 text-2xl font-bold text-[#f59e0b]">{history.length}</dd>
             </div>
           </dl>
 
@@ -93,7 +99,9 @@ const ExerciseDetailPage = () => {
           />
 
           <div className="px-4">
-            <p className="mb-2 mt-2 text-[10px] uppercase tracking-wider text-gray-400">History</p>
+            <p className="mb-2 mt-2 text-[10px] font-medium uppercase tracking-widest text-[#565670]">
+              History
+            </p>
             <div className="flex flex-col gap-1.5">
               {[...history].reverse().map((entry, i) => (
                 <ExerciseHistoryItem key={i} entry={entry} />

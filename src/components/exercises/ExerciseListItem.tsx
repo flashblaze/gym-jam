@@ -17,10 +17,10 @@ const ExerciseListItem = ({ exercise, lastSessionDate }: ExerciseListItemProps) 
       onClick={() =>
         void navigate({ to: "/exercises/$exerciseId", params: { exerciseId: exercise.id } })
       }
-      className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 transition-colors hover:border-gray-300 hover:bg-gray-50"
+      className="flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-[#18182a] px-4 py-3 transition-colors hover:border-white/[0.14] hover:bg-[#1e1e32]"
     >
-      <span className="text-sm font-medium text-gray-900">{exercise.name}</span>
-      <span className="text-xs text-gray-400">
+      <span className="text-sm font-medium text-[#d4d4e0]">{exercise.name}</span>
+      <span className="text-xs text-[#565670]">
         {lastSessionDate ? formatDate(lastSessionDate) : "—"}
       </span>
     </UnstyledButton>

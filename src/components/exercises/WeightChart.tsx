@@ -37,14 +37,16 @@ const WeightChart = ({ data, label = "Top set weight (kg)" }: WeightChartProps) 
 
   return (
     <div className="px-4 pb-2">
-      <p className="mb-1 text-[10px] uppercase tracking-wide text-gray-400">{label}</p>
+      <p className="mb-1 text-[10px] font-medium uppercase tracking-widest text-[#565670]">
+        {label}
+      </p>
       <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full">
         <line
           x1={0}
           y1={pad}
           x2={W}
           y2={pad}
-          stroke="#e5e7eb"
+          stroke="rgba(255,255,255,0.05)"
           strokeWidth={0.5}
           strokeDasharray="2,2"
         />
@@ -53,20 +55,20 @@ const WeightChart = ({ data, label = "Top set weight (kg)" }: WeightChartProps) 
           y1={pad + innerH}
           x2={W}
           y2={pad + innerH}
-          stroke="#e5e7eb"
+          stroke="rgba(255,255,255,0.05)"
           strokeWidth={0.5}
         />
-        <text x={6} y={pad + 4} fontSize={9} fill="#9ca3af">
+        <text x={6} y={pad + 4} fontSize={9} fill="#565670">
           {maxV}
         </text>
-        <text x={6} y={pad + innerH + 4} fontSize={9} fill="#9ca3af">
+        <text x={6} y={pad + innerH + 4} fontSize={9} fill="#565670">
           {minV}
         </text>
-        <path d={areaPath} fill="#dbeafe" opacity={0.6} />
+        <path d={areaPath} fill="#f59e0b" opacity={0.12} />
         <path
           d={linePath}
           fill="none"
-          stroke="#3b82f6"
+          stroke="#f59e0b"
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -77,7 +79,7 @@ const WeightChart = ({ data, label = "Top set weight (kg)" }: WeightChartProps) 
             cx={p[0].toFixed(1)}
             cy={p[1].toFixed(1)}
             r={i === pts.length - 1 ? 4 : 3}
-            fill="#3b82f6"
+            fill={i === pts.length - 1 ? "#f59e0b" : "#d97706"}
           />
         ))}
       </svg>

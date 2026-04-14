@@ -14,26 +14,26 @@ const SessionCard = ({ session, onDelete }: SessionCardProps) => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-stretch rounded-xl border border-gray-200 bg-white shadow-xs transition-colors hover:border-gray-300">
+    <div className="flex items-stretch rounded-xl border border-white/[0.08] bg-[#18182a] transition-colors hover:border-white/[0.14] hover:bg-[#1e1e32]">
       <UnstyledButton
         onClick={() =>
           void navigate({ to: "/sessions/$sessionId", params: { sessionId: session.id } })
         }
-        className="min-w-0 flex-1 px-4 py-3 text-left"
+        className="min-w-0 flex-1 px-4 py-3.5 text-left"
       >
-        <div className="mb-1.5 flex items-baseline justify-between">
-          <span className="text-sm font-medium text-gray-900">
-            {formatDate(session.date)} · {session.name}
-          </span>
-          <span className="ml-2 shrink-0 text-xs text-gray-400">{session.exercises.length} ex</span>
+        <div className="mb-1 flex items-baseline justify-between gap-2">
+          <span className="text-sm font-semibold text-[#d4d4e0]">{formatDate(session.date)}</span>
+          <span className="shrink-0 text-xs text-[#565670]">{session.exercises.length} ex</span>
         </div>
-        <div className="flex gap-3 text-xs text-gray-500">
-          <span>{sessSetCount(session)} sets</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[#565670]">{session.name}</span>
+          <span className="text-[#333348]">·</span>
+          <span className="text-xs text-[#565670]">{sessSetCount(session)} sets</span>
         </div>
       </UnstyledButton>
       <div className="flex items-center pr-3">
         <ActionIcon
-          variant="subtle"
+          variant="default"
           color="red"
           size="sm"
           onClick={onDelete}

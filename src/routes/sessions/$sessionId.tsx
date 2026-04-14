@@ -1,4 +1,4 @@
-import { ActionIcon, Badge, Button, NumberInput, Skeleton, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Badge, Button, NumberInput, Skeleton, TextInput } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -38,11 +38,11 @@ const EditSetRow = ({
   };
 
   return (
-    <div className="rounded-lg border border-gray-100 bg-gray-50 p-2">
+    <div className="rounded-lg border border-white/[0.08] bg-[#18182a] p-2">
       <div className="mb-1.5 flex items-center justify-between">
-        <span className="text-xs text-gray-400">Set {setIndex + 1}</span>
+        <span className="text-xs text-[#565670]">S{setIndex + 1}</span>
         <ActionIcon
-          variant="subtle"
+          variant="default"
           color="gray"
           size="sm"
           onClick={onRemove}
@@ -63,7 +63,7 @@ const EditSetRow = ({
           return (
             <div key={segIdx} className="flex items-center gap-2">
               {isSuperset && (
-                <span className="max-w-[70px] overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-gray-500">
+                <span className="max-w-[70px] overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[#565670]">
                   {ex?.name.split(" ").slice(0, 2).join(" ")}
                 </span>
               )}
@@ -83,7 +83,7 @@ const EditSetRow = ({
                     className="w-14"
                     styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
                   />
-                  <span className="text-xs text-gray-400">m</span>
+                  <span className="text-xs text-[#565670]">m</span>
                   <NumberInput
                     size="xs"
                     placeholder="sec"
@@ -99,7 +99,7 @@ const EditSetRow = ({
                     className="w-14"
                     styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
                   />
-                  <span className="text-xs text-gray-400">s</span>
+                  <span className="text-xs text-[#565670]">s</span>
                 </>
               ) : (
                 <>
@@ -117,7 +117,7 @@ const EditSetRow = ({
                       styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
                     />
                   )}
-                  {isWeighted && <span className="text-xs text-gray-400">×</span>}
+                  {isWeighted && <span className="text-xs text-[#565670]">×</span>}
                   <NumberInput
                     size="xs"
                     placeholder="reps"
@@ -173,8 +173,8 @@ const ViewSetRow = ({ set, index, primaryExerciseId, exercises }: ViewSetRowProp
 
   return (
     <div className="flex items-center gap-2 text-xs">
-      <span className="w-3.5 text-gray-400">{index + 1}</span>
-      <span className="flex-1 font-mono text-gray-600">{text}</span>
+      <span className="w-3.5 text-[#565670]">{index + 1}</span>
+      <span className="flex-1 font-mono text-[#a0a0b8]">{text}</span>
       {hasSuperset && (
         <Badge size="xs" color="teal" variant="light">
           SS
@@ -228,9 +228,9 @@ const SessionDetailPage = () => {
     modals.openConfirmModal({
       title: "Delete session",
       children: (
-        <Text size="sm">
+        <p className="text-sm text-[#a0a0b8]">
           Delete the session from {formatDate(session.date)}? This cannot be undone.
-        </Text>
+        </p>
       ),
       labels: { confirm: "Delete", cancel: "Cancel" },
       confirmProps: { color: "red" },
@@ -291,9 +291,8 @@ const SessionDetailPage = () => {
       <div className="px-4 pt-4">
         <div className="flex items-center justify-between">
           <Button
-            variant="subtle"
+            variant="default"
             size="compact-sm"
-            color="gray"
             leftSection={<IconSolarAltArrowLeftBroken />}
             onClick={() => void navigate({ to: "/sessions" })}
           >
@@ -302,7 +301,7 @@ const SessionDetailPage = () => {
           {!editing && (
             <div className="flex items-center gap-1">
               <ActionIcon
-                variant="subtle"
+                variant="default"
                 color="red"
                 size="sm"
                 onClick={deleteSession}
@@ -311,9 +310,8 @@ const SessionDetailPage = () => {
                 <IconSolarTrashBinMinimalisticBroken />
               </ActionIcon>
               <Button
-                variant="subtle"
+                variant="default"
                 size="compact-sm"
-                color="gray"
                 leftSection={<IconSolarPenBroken />}
                 onClick={startEdit}
               >
@@ -322,7 +320,9 @@ const SessionDetailPage = () => {
             </div>
           )}
         </div>
-        <h1 className="mt-2 text-2xl font-semibold text-gray-900">{formatDate(displayed.date)}</h1>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-[#d4d4e0]">
+          {formatDate(displayed.date)}
+        </h1>
         {editing && draft ? (
           <TextInput
             value={draft.name}
@@ -331,7 +331,7 @@ const SessionDetailPage = () => {
             className="mt-1 max-w-[220px]"
           />
         ) : (
-          <p className="mt-0.5 text-sm text-gray-500">{displayed.name}</p>
+          <p className="mt-0.5 text-xs text-[#565670]">{displayed.name}</p>
         )}
       </div>
 
@@ -343,14 +343,17 @@ const SessionDetailPage = () => {
           if (!ex) return null;
 
           return (
-            <div key={entry.exerciseId} className="rounded-xl border border-gray-200 px-4 py-3">
+            <div
+              key={entry.exerciseId}
+              className="rounded-xl border border-white/[0.08] bg-[#18182a] px-4 py-3"
+            >
               <div className="mb-2 flex items-baseline justify-between">
-                <span className="text-sm font-semibold text-gray-900">{ex.name}</span>
+                <span className="text-sm font-semibold text-[#d4d4e0]">{ex.name}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">{entry.sets.length} sets</span>
+                  <span className="text-xs text-[#565670]">{entry.sets.length} sets</span>
                   {editing && (
                     <ActionIcon
-                      variant="subtle"
+                      variant="default"
                       color="red"
                       size="sm"
                       onClick={() => removeDraftExercise(exIdx)}
@@ -391,7 +394,7 @@ const SessionDetailPage = () => {
 
       {editing && (
         <div className="mt-4 flex gap-2 px-4">
-          <Button variant="outline" color="gray" size="sm" onClick={cancelEdit} className="flex-1">
+          <Button variant="default" size="sm" onClick={cancelEdit} className="flex-1">
             Cancel
           </Button>
           <Button size="sm" onClick={() => void saveEdit()} className="flex-1">

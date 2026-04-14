@@ -16,7 +16,7 @@ import "./index.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <MantineProvider theme={theme}>
+    <MantineProvider theme={theme} forceColorScheme="dark">
       <ModalsProvider>
         <Notifications position="top-center" />
         <RouterProvider router={router} />

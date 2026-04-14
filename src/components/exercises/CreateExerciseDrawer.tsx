@@ -104,7 +104,7 @@ const CreateExerciseDrawer = ({ opened, onClose, categories }: CreateExerciseDra
       position="bottom"
       size="auto"
       title="New exercise"
-      styles={{ title: { fontWeight: 600 } }}
+      styles={{ title: { fontWeight: 700, fontSize: 16 } }}
     >
       <div className="flex flex-col gap-4 pb-4">
         <TextInput

@@ -26,9 +26,9 @@ const SegmentRow = ({
 
   return (
     <div className="mt-2 flex items-center gap-2 pl-10">
-      <span className="text-sm text-gray-400">{isSuperset ? "+" : "→"}</span>
+      <span className="text-sm text-[#565670]">{isSuperset ? "+" : "→"}</span>
       {isSuperset && (
-        <span className="max-w-[80px] overflow-hidden text-ellipsis whitespace-nowrap text-xs text-gray-500">
+        <span className="max-w-[80px] overflow-hidden text-ellipsis whitespace-nowrap text-xs text-[#7e7e96]">
           {exercises[segment.exId]?.name.split(" ").slice(0, 2).join(" ")}
         </span>
       )}
@@ -44,7 +44,7 @@ const SegmentRow = ({
           styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
         />
       )}
-      {isWeighted && <span className="text-xs text-gray-400">×</span>}
+      {isWeighted && <span className="text-xs text-[#565670]">×</span>}
       <NumberInput
         size="xs"
         placeholder="reps"
@@ -58,7 +58,7 @@ const SegmentRow = ({
         {isSuperset ? "SS" : "DS"}
       </Badge>
       <ActionIcon
-        variant="subtle"
+        variant="default"
         color="gray"
         size="sm"
         onClick={onRemove}

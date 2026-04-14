@@ -1,4 +1,4 @@
-import { createTheme } from "@mantine/core";
+import { type MantineColorsTuple, createTheme } from "@mantine/core";
 
 import {
   ExtendedActionIcon,
@@ -14,35 +14,50 @@ import {
   ExtendedModal,
   ExtendedMultiSelect,
   ExtendedNotification,
+  ExtendedNumberInput,
   ExtendedPasswordInput,
   ExtendedPinInput,
   ExtendedPopover,
   ExtendedSelect,
-  ExtendedNumberInput,
   ExtendedTextInput,
-  ExtendedTimeInput,
   ExtendedTextarea,
+  ExtendedTimeInput,
 } from "./components/extended/index";
+
+// Amber — warm energy against the dark
+const primary: MantineColorsTuple = [
+  "#fffbeb",
+  "#fef3c7",
+  "#fde68a",
+  "#fcd34d",
+  "#fbbf24",
+  "#f59e0b",
+  "#d97706",
+  "#b45309",
+  "#92400e",
+  "#78350f",
+];
+
+// Deep dark, slightly cool-toned
+const dark: MantineColorsTuple = [
+  "#d4d4e0", // 0 — body text
+  "#a8a8bc", // 1
+  "#7e7e96", // 2
+  "#565670", // 3
+  "#333348", // 4
+  "#232334", // 5 — inputs / elevated
+  "#18182a", // 6 — card surface
+  "#0f0f1c", // 7 — body background
+  "#0a0a14", // 8
+  "#06060c", // 9
+];
 
 const theme = createTheme({
   fontFamily: '"Geist Variable", sans-serif',
   headings: { fontFamily: '"Geist Variable", sans-serif' },
   primaryColor: "primary",
-  primaryShade: 6,
-  colors: {
-    primary: [
-      "#eff6ff",
-      "#dbeafe",
-      "#bfdbfe",
-      "#93c5fd",
-      "#60a5fa",
-      "#3b82f6",
-      "#2563eb",
-      "#1d4ed8",
-      "#1e40af",
-      "#1e3a8a",
-    ],
-  },
+  primaryShade: { light: 5, dark: 4 },
+  colors: { primary, dark },
   components: {
     Button: ExtendedButton,
     TextInput: ExtendedTextInput,

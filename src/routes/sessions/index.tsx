@@ -24,9 +24,9 @@ const SessionsPage = () => {
 
   return (
     <div className="px-4 pb-6">
-      <header className="py-5">
-        <h1 className="text-2xl font-semibold text-gray-900">Workouts</h1>
-        <p className="mt-0.5 text-xs text-gray-500">
+      <header className="py-6">
+        <h1 className="text-3xl font-bold tracking-tight text-[#d4d4e0]">Workouts</h1>
+        <p className="mt-1 text-xs text-[#565670]">
           {sessions ? `${sessions.length} sessions logged` : "Loading…"}
         </p>
       </header>
@@ -39,8 +39,8 @@ const SessionsPage = () => {
             <Skeleton height={64} radius="xl" />
           </>
         ) : sessions.length === 0 ? (
-          <p className="py-8 text-center text-sm text-gray-400">
-            No sessions yet. Tap + to add one.
+          <p className="py-10 text-center text-sm text-[#565670]">
+            No sessions yet. Tap + to log one.
           </p>
         ) : (
           sessions.map((s) => (

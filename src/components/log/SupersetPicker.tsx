@@ -47,27 +47,27 @@ const SupersetPicker = ({
       position="bottom"
       size="75%"
       title="Pair with exercise"
-      styles={{ title: { fontWeight: 600 } }}
+      styles={{ title: { fontWeight: 700, fontSize: 16 } }}
     >
       <div className="flex flex-col">
         {inDraft.length > 0 && (
           <>
-            <p className="mb-1 text-[10px] uppercase tracking-wider text-gray-400">
+            <p className="mb-1 text-[10px] font-medium uppercase tracking-widest text-[#565670]">
               Already in this session
             </p>
             {inDraft.map((ex) => (
               <UnstyledButton
                 key={ex.id}
                 onClick={() => handlePick(ex.id)}
-                className="flex w-full items-center justify-between border-b border-gray-100 py-3 hover:bg-gray-50"
+                className="flex w-full items-center justify-between border-b border-white/[0.06] py-3 hover:bg-white/[0.03]"
               >
-                <span className="text-sm text-gray-900">{ex.name}</span>
-                <span className="text-[10px] uppercase text-gray-400">
+                <span className="text-sm text-[#d4d4e0]">{ex.name}</span>
+                <span className="text-[10px] uppercase tracking-wider text-[#565670]">
                   {categoryMap[ex.category] ?? ex.category}
                 </span>
               </UnstyledButton>
             ))}
-            <p className="mb-1 mt-4 text-[10px] uppercase tracking-wider text-gray-400">
+            <p className="mb-1 mt-4 text-[10px] font-medium uppercase tracking-widest text-[#565670]">
               All exercises
             </p>
           </>
@@ -79,7 +79,7 @@ const SupersetPicker = ({
           return (
             <div key={cat.id}>
               {inDraft.length === 0 && (
-                <p className="mb-1 mt-3 text-[10px] uppercase tracking-wider text-gray-400">
+                <p className="mb-1 mt-3 text-[10px] font-medium uppercase tracking-widest text-[#565670]">
                   {cat.name}
                 </p>
               )}
@@ -87,11 +87,11 @@ const SupersetPicker = ({
                 <UnstyledButton
                   key={ex.id}
                   onClick={() => handlePick(ex.id)}
-                  className="flex w-full items-center justify-between border-b border-gray-100 py-3 hover:bg-gray-50"
+                  className="flex w-full items-center justify-between border-b border-white/[0.06] py-3 hover:bg-white/[0.03]"
                 >
-                  <span className="text-sm text-gray-900">{ex.name}</span>
+                  <span className="text-sm text-[#d4d4e0]">{ex.name}</span>
                   {inDraft.length > 0 && (
-                    <span className="text-[10px] uppercase text-gray-400">
+                    <span className="text-[10px] uppercase tracking-wider text-[#565670]">
                       {categoryMap[ex.category] ?? ex.category}
                     </span>
                   )}

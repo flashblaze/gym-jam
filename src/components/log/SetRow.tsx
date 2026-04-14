@@ -45,10 +45,10 @@ const SetRow = ({
   const timedSeconds = (primary.r ?? 0) % 60;
 
   return (
-    <div className="rounded-xl border border-gray-200 px-3 py-3">
+    <div className="rounded-xl border border-white/[0.08] bg-[#18182a] px-3 py-3">
       <div className="flex items-center gap-2">
-        <span className="min-w-[34px] text-[10px] font-medium uppercase tracking-wide text-gray-400">
-          Set {index + 1}
+        <span className="min-w-[34px] text-[10px] font-medium uppercase tracking-widest text-[#565670]">
+          S{index + 1}
         </span>
 
         {isTimed ? (
@@ -64,7 +64,7 @@ const SetRow = ({
               className="w-16"
               styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
             />
-            <span className="text-sm text-gray-400">m</span>
+            <span className="text-sm text-[#565670]">m</span>
             <NumberInput
               size="sm"
               placeholder="sec"
@@ -80,7 +80,7 @@ const SetRow = ({
               className="w-16"
               styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
             />
-            <span className="text-sm text-gray-400">s</span>
+            <span className="text-sm text-[#565670]">s</span>
           </>
         ) : (
           <>
@@ -96,7 +96,7 @@ const SetRow = ({
                 styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
               />
             )}
-            {isWeighted && <span className="text-sm text-gray-400">×</span>}
+            {isWeighted && <span className="text-sm text-[#565670]">×</span>}
             <NumberInput
               size="sm"
               placeholder="reps"
@@ -110,7 +110,7 @@ const SetRow = ({
         )}
 
         <ActionIcon
-          variant="subtle"
+          variant="default"
           color="gray"
           size="sm"
           onClick={onRemove}
@@ -134,10 +134,10 @@ const SetRow = ({
 
       {!isTimed && (
         <div className="mt-3 flex gap-2 pl-10">
-          <Button size="xs" variant="light" color="violet" radius="xl" onClick={onAddDrop}>
+          <Button size="xs" variant="filled" color="violet" radius="xl" onClick={onAddDrop}>
             + Drop
           </Button>
-          <Button size="xs" variant="light" color="teal" radius="xl" onClick={onAddSuperset}>
+          <Button size="xs" variant="filled" color="teal" radius="xl" onClick={onAddSuperset}>
             + Superset
           </Button>
         </div>

@@ -35,7 +35,6 @@ const LogPage = () => {
       {} as Record<string, Exercise>,
     ) ?? {};
 
-  // Mantine Select data grouped by category
   const selectData =
     exercises && categories
       ? categories.flatMap((cat) => {
@@ -90,7 +89,6 @@ const LogPage = () => {
     setPickerSetIndex(null);
   };
 
-  // Collect all exerciseIds referenced in the draft
   const draftExerciseIds = new Set<string>();
   if (exerciseId) draftExerciseIds.add(exerciseId);
   for (const set of sets) {
@@ -148,7 +146,7 @@ const LogPage = () => {
 
       notifications.show({
         title: "Session saved",
-        message: `${valid.length} set${valid.length > 1 ? "s" : ""} logged for today.`,
+        message: `${valid.length} set${valid.length > 1 ? "s" : ""} logged.`,
         color: "green",
       });
 
@@ -166,18 +164,17 @@ const LogPage = () => {
 
   return (
     <div className="px-4 pb-6">
-      <div className="py-4">
+      <div className="py-5">
         <Button
-          variant="subtle"
+          variant="default"
           size="compact-sm"
-          color="gray"
           leftSection={<IconSolarAltArrowLeftBroken />}
           onClick={() => void navigate({ to: "/sessions" })}
         >
           Cancel
         </Button>
-        <h1 className="mt-2 text-2xl font-semibold text-gray-900">Log exercise</h1>
-        <p className="mt-0.5 text-xs text-gray-500">Adds to today's session</p>
+        <h1 className="mt-4 text-2xl font-bold tracking-tight text-[#d4d4e0]">Log exercise</h1>
+        <p className="mt-0.5 text-xs text-[#565670]">Adds to the selected day's session</p>
       </div>
 
       <div className="mb-4">
@@ -192,10 +189,8 @@ const LogPage = () => {
       </div>
 
       <div className="mb-5">
-        <label className="mb-1 block text-[10px] uppercase tracking-wide text-gray-500">
-          Exercise
-        </label>
         <Select
+          label="Exercise"
           placeholder="Choose exercise…"
           data={selectData}
           value={exerciseId}
@@ -223,18 +218,12 @@ const LogPage = () => {
             ))}
           </div>
 
-          <Button
-            variant="outline"
-            fullWidth
-            color="gray"
-            className="mb-5 border-dashed"
-            onClick={addSet}
-          >
+          <Button variant="default" fullWidth className="mb-5 border-dashed" onClick={addSet}>
             + Add set
           </Button>
 
           <Button fullWidth size="md" onClick={() => void handleSave()} loading={saving}>
-            Save to today's session
+            Save to session
           </Button>
         </>
       )}

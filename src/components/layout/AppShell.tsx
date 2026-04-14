@@ -4,7 +4,7 @@ import BottomNav from "./BottomNav";
 
 const AppShell = () => {
   return (
-    <div className="mx-auto flex h-dvh max-w-md flex-col bg-white">
+    <div className="mx-auto flex h-dvh max-w-md flex-col bg-[#0f0f1c]">
       <main className="flex-1 overflow-y-auto">
         <Outlet />
       </main>

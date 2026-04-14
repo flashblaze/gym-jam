@@ -14,9 +14,11 @@ const SessionStats = ({ session }: SessionStatsProps) => {
   return (
     <dl className="grid grid-cols-2 gap-2 px-4 py-3">
       {stats.map(({ label, value }) => (
-        <div key={label} className="rounded-xl bg-gray-50 px-3 py-2.5">
-          <dt className="text-[10px] uppercase tracking-wide text-gray-500">{label}</dt>
-          <dd className="mt-0.5 text-lg font-semibold text-gray-900">{value}</dd>
+        <div key={label} className="rounded-xl border border-white/[0.06] bg-[#18182a] px-4 py-3">
+          <dt className="text-[10px] font-medium uppercase tracking-widest text-[#565670]">
+            {label}
+          </dt>
+          <dd className="mt-1 text-2xl font-bold text-[#f59e0b]">{value}</dd>
         </div>
       ))}
     </dl>
