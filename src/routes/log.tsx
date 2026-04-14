@@ -122,27 +122,30 @@ const LogPage = () => {
     }
 
     setSaving(true);
+    let savedSessionId: string | null = null;
     try {
       const today = logDate ?? todayIso();
-      let sess = await db.sessions.where("date").equals(today).first();
 
-      if (!sess) {
-        const newId = nanoid("s-");
-        await db.sessions.add({ id: newId, date: today, name: "Session", exercises: [] });
-        sess = await db.sessions.get(newId);
-      }
+      // Single transaction: one round-trip instead of 3–4 separate ones.
+      await db.transaction("rw", db.sessions, async () => {
+        let sess = await db.sessions.where("date").equals(today).first();
 
-      if (!sess) throw new Error("Failed to create session");
+        if (!sess) {
+          const newId = nanoid("s-");
+          sess = { id: newId, date: today, name: "Session", exercises: [] };
+          await db.sessions.add(sess);
+        }
 
-      const savedSession = sess;
-      const existing = savedSession.exercises.find((e) => e.exerciseId === exerciseId);
-      if (existing) {
-        existing.sets.push(...valid);
-      } else {
-        savedSession.exercises.push({ exerciseId, sets: valid });
-      }
+        const existing = sess.exercises.find((e) => e.exerciseId === exerciseId);
+        if (existing) {
+          existing.sets.push(...valid);
+        } else {
+          sess.exercises.push({ exerciseId, sets: valid });
+        }
 
-      await db.sessions.put(savedSession);
+        await db.sessions.put(sess);
+        savedSessionId = sess.id;
+      });
 
       notifications.show({
         title: "Session saved",
@@ -150,7 +153,9 @@ const LogPage = () => {
         color: "green",
       });
 
-      void navigate({ to: "/sessions/$sessionId", params: { sessionId: savedSession.id } });
+      if (savedSessionId) {
+        void navigate({ to: "/sessions/$sessionId", params: { sessionId: savedSessionId } });
+      }
     } catch (err) {
       notifications.show({
         title: "Save failed",
