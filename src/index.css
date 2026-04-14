@@ -22,11 +22,11 @@
   box-sizing: border-box;
 }
 
-html {
+html,
+body {
+  height: 100%;
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-body {
   background-color: #0f0f1c;
 }

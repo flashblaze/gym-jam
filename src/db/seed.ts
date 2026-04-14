@@ -1,4 +1,12 @@
-import type { Exercise, Session } from "./index";
+import type { Category, Exercise, Session } from "./index";
+
+export const SEED_CATEGORIES: Category[] = [
+  { id: "chest", name: "Chest" },
+  { id: "back", name: "Back" },
+  { id: "legs", name: "Legs" },
+  { id: "shoulders", name: "Shoulders" },
+  { id: "arms", name: "Arms" },
+];
 
 export const SEED_EXERCISES: Exercise[] = [
   { id: "flat-bench", name: "Flat bench", category: "chest", type: "weighted" },

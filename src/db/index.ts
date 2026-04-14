@@ -1,5 +1,7 @@
 import Dexie, { type EntityTable } from "dexie";
 
+import { SEED_CATEGORIES } from "./seed";
+
 export interface Category {
   id: string;
   name: string;
@@ -46,13 +48,7 @@ db.version(1).stores({
 db.version(2)
   .stores({ categories: "id, name" })
   .upgrade(async (tx) => {
-    await tx.table("categories").bulkAdd([
-      { id: "chest", name: "Chest" },
-      { id: "back", name: "Back" },
-      { id: "legs", name: "Legs" },
-      { id: "shoulders", name: "Shoulders" },
-      { id: "arms", name: "Arms" },
-    ]);
+    await tx.table("categories").bulkAdd(SEED_CATEGORIES);
   });
 
 export { db };
