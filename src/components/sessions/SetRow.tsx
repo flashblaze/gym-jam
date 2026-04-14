@@ -1,6 +1,7 @@
 import { Badge } from "@mantine/core";
 
 import type { Exercise, WorkoutSet } from "~/db/index";
+import { formatDuration } from "~/lib/calc";
 
 interface SetRowProps {
   set: WorkoutSet;
@@ -10,21 +11,25 @@ interface SetRowProps {
 }
 
 const SetRow = ({ set, primaryExerciseId, index, exercises }: SetRowProps) => {
+  const primaryEx = exercises[primaryExerciseId];
+  const isTimed = primaryEx?.type === "timed";
   const hasSuperset = set.slice(1).some((seg) => seg.exId !== primaryExerciseId);
   const isDropSet = set.length > 1 && !hasSuperset;
 
-  const text = set
-    .map((seg, j) => {
-      const segEx = exercises[seg.exId];
-      const prefix = j === 0 ? "" : seg.exId === primaryExerciseId ? " → " : " + ";
-      const name =
-        segEx && seg.exId !== primaryExerciseId
-          ? segEx.name.split(" ").slice(0, 2).join(" ") + " "
-          : "";
-      const w = seg.w != null ? seg.w + "×" : "×";
-      return prefix + name + w + seg.r;
-    })
-    .join("");
+  const text = isTimed
+    ? set.map((seg) => formatDuration(seg.r)).join(" → ")
+    : set
+        .map((seg, j) => {
+          const segEx = exercises[seg.exId];
+          const prefix = j === 0 ? "" : seg.exId === primaryExerciseId ? " → " : " + ";
+          const name =
+            segEx && seg.exId !== primaryExerciseId
+              ? segEx.name.split(" ").slice(0, 2).join(" ") + " "
+              : "";
+          const w = seg.w != null ? seg.w + "×" : "×";
+          return prefix + name + w + seg.r;
+        })
+        .join("");
 
   return (
     <div className="flex items-center gap-2 text-xs">

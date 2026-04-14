@@ -11,6 +11,7 @@
     "preview": "vp preview"
   },
   "dependencies": {
+    "@fontsource-variable/geist": "^5.2.8",
     "@hookform/resolvers": "^5.2.2",
     "@mantine/core": "^9.0.2",
     "@mantine/dates": "^9.0.2",
@@ -18,7 +19,6 @@
     "@mantine/modals": "^9.0.2",
     "@mantine/notifications": "^9.0.2",
     "@tanstack/react-router": "^1.168.21",
-    "@tanstack/router-vite-plugin": "^1.166.37",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.20",
     "dexie": "^4.4.2",
@@ -41,6 +41,7 @@
     "@svgr/core": "^8.1.0",
     "@svgr/plugin-jsx": "^8.1.0",
     "@tailwindcss/vite": "^4.2.2",
+    "@tanstack/router-plugin": "^1.167.22",
     "@types/babel__core": "^7.20.5",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",

@@ -1,4 +1,4 @@
-import { Skeleton } from "@mantine/core";
+import { Button, Skeleton } from "@mantine/core";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import IconSolarAltArrowLeftBroken from "~icons/solar/alt-arrow-left-broken";
 
@@ -6,7 +6,8 @@ import ExerciseHistoryItem from "~/components/exercises/ExerciseHistoryItem";
 import WeightChart from "~/components/exercises/WeightChart";
 import { useExerciseHistory } from "~/hooks/use-exercise-history";
 import { useExercise } from "~/hooks/use-exercises";
-import { CATEGORY_LABELS, TYPE_LABELS } from "~/lib/constants";
+import { formatDuration } from "~/lib/calc";
+import { TYPE_LABELS } from "~/lib/constants";
 
 const ExerciseDetailPage = () => {
   const { exerciseId } = Route.useParams();
@@ -28,25 +29,32 @@ const ExerciseDetailPage = () => {
     return null;
   }
 
-  const topWeight = history.length ? Math.max(...history.map((h) => h.maxWeight)) : 0;
-  const topEntry = history.find((h) => h.maxWeight === topWeight);
-  const chartData = history.map((h) => ({ date: h.date, value: h.maxWeight }));
+  const isTimed = exercise.type === "timed";
+
+  const topWeight = !isTimed && history.length ? Math.max(...history.map((h) => h.maxWeight)) : 0;
+  const topEntry = !isTimed ? history.find((h) => h.maxWeight === topWeight) : undefined;
+
+  const bestTime = isTimed && history.length ? Math.max(...history.map((h) => h.bestTime)) : 0;
+  const bestTimeEntry = isTimed ? history.find((h) => h.bestTime === bestTime) : undefined;
+
+  const chartData = isTimed
+    ? history.map((h) => ({ date: h.date, value: h.bestTime }))
+    : history.map((h) => ({ date: h.date, value: h.maxWeight }));
 
   return (
     <div className="pb-6">
       <div className="px-4 pt-4">
-        <button
-          type="button"
-          onClick={() => navigate({ to: "/exercises" })}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+        <Button
+          variant="subtle"
+          size="compact-sm"
+          color="gray"
+          leftSection={<IconSolarAltArrowLeftBroken />}
+          onClick={() => void navigate({ to: "/exercises" })}
         >
-          <IconSolarAltArrowLeftBroken className="text-base" />
           Back
-        </button>
+        </Button>
         <h1 className="mt-2 text-2xl font-semibold text-gray-900">{exercise.name}</h1>
-        <p className="mt-0.5 text-xs capitalize text-gray-500">
-          {CATEGORY_LABELS[exercise.category]} · {TYPE_LABELS[exercise.type]}
-        </p>
+        <p className="mt-0.5 text-xs capitalize text-gray-500">{TYPE_LABELS[exercise.type]}</p>
       </div>
 
       {history.length === 0 ? (
@@ -54,20 +62,35 @@ const ExerciseDetailPage = () => {
       ) : (
         <>
           <dl className="grid grid-cols-2 gap-2 px-4 py-3">
-            <div className="rounded-xl bg-gray-50 px-3 py-2.5">
-              <dt className="text-[10px] uppercase tracking-wide text-gray-500">Top weight</dt>
-              <dd className="mt-0.5 text-xl font-semibold text-gray-900">
-                {topWeight} <span className="text-xs font-normal text-gray-500">kg</span>
-              </dd>
-              {topEntry && <p className="mt-0.5 text-[10px] text-gray-400">{topEntry.date}</p>}
-            </div>
+            {isTimed ? (
+              <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+                <dt className="text-[10px] uppercase tracking-wide text-gray-500">Best time</dt>
+                <dd className="mt-0.5 text-xl font-semibold text-gray-900">
+                  {formatDuration(bestTime)}
+                </dd>
+                {bestTimeEntry && (
+                  <p className="mt-0.5 text-[10px] text-gray-400">{bestTimeEntry.date}</p>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+                <dt className="text-[10px] uppercase tracking-wide text-gray-500">Top weight</dt>
+                <dd className="mt-0.5 text-xl font-semibold text-gray-900">
+                  {topWeight} <span className="text-xs font-normal text-gray-500">kg</span>
+                </dd>
+                {topEntry && <p className="mt-0.5 text-[10px] text-gray-400">{topEntry.date}</p>}
+              </div>
+            )}
             <div className="rounded-xl bg-gray-50 px-3 py-2.5">
               <dt className="text-[10px] uppercase tracking-wide text-gray-500">Sessions</dt>
               <dd className="mt-0.5 text-xl font-semibold text-gray-900">{history.length}</dd>
             </div>
           </dl>
 
-          <WeightChart data={chartData} />
+          <WeightChart
+            data={chartData}
+            label={isTimed ? "Best duration (s)" : "Top set weight (kg)"}
+          />
 
           <div className="px-4">
             <p className="mb-2 mt-2 text-[10px] uppercase tracking-wider text-gray-400">History</p>

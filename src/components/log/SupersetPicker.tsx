@@ -1,13 +1,13 @@
-import { Drawer } from "@mantine/core";
+import { Drawer, UnstyledButton } from "@mantine/core";
 
-import type { Exercise } from "~/db/index";
-import { CATEGORY_LABELS, CATEGORY_ORDER } from "~/lib/constants";
+import type { Category, Exercise } from "~/db/index";
 
 interface SupersetPickerProps {
   opened: boolean;
   onClose: () => void;
   onPick: (exerciseId: string) => void;
   exercises: Exercise[];
+  categories: Category[];
   currentDraftExerciseIds: Set<string>;
   primaryExerciseId: string;
 }
@@ -17,19 +17,19 @@ const SupersetPicker = ({
   onClose,
   onPick,
   exercises,
+  categories,
   currentDraftExerciseIds,
   primaryExerciseId,
 }: SupersetPickerProps) => {
-  // Exercises already referenced in the draft (excluding primary)
   const inDraft = exercises.filter(
     (ex) => currentDraftExerciseIds.has(ex.id) && ex.id !== primaryExerciseId,
   );
-  // All others sorted alphabetically
   const rest = exercises
     .filter((ex) => !currentDraftExerciseIds.has(ex.id))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // Group rest by category in order
+  const categoryMap = Object.fromEntries(categories.map((c) => [c.id, c.name]));
+
   const restByCategory: Record<string, Exercise[]> = {};
   for (const ex of rest) {
     (restByCategory[ex.category] ??= []).push(ex);
@@ -56,17 +56,16 @@ const SupersetPicker = ({
               Already in this session
             </p>
             {inDraft.map((ex) => (
-              <button
+              <UnstyledButton
                 key={ex.id}
-                type="button"
                 onClick={() => handlePick(ex.id)}
-                className="flex w-full items-center justify-between border-b border-gray-100 py-3 text-left hover:bg-gray-50"
+                className="flex w-full items-center justify-between border-b border-gray-100 py-3 hover:bg-gray-50"
               >
                 <span className="text-sm text-gray-900">{ex.name}</span>
                 <span className="text-[10px] uppercase text-gray-400">
-                  {CATEGORY_LABELS[ex.category]}
+                  {categoryMap[ex.category] ?? ex.category}
                 </span>
-              </button>
+              </UnstyledButton>
             ))}
             <p className="mb-1 mt-4 text-[10px] uppercase tracking-wider text-gray-400">
               All exercises
@@ -74,30 +73,29 @@ const SupersetPicker = ({
           </>
         )}
 
-        {CATEGORY_ORDER.map((cat) => {
-          const list = restByCategory[cat];
+        {categories.map((cat) => {
+          const list = restByCategory[cat.id];
           if (!list?.length) return null;
           return (
-            <div key={cat}>
+            <div key={cat.id}>
               {inDraft.length === 0 && (
                 <p className="mb-1 mt-3 text-[10px] uppercase tracking-wider text-gray-400">
-                  {CATEGORY_LABELS[cat]}
+                  {cat.name}
                 </p>
               )}
               {list.map((ex) => (
-                <button
+                <UnstyledButton
                   key={ex.id}
-                  type="button"
                   onClick={() => handlePick(ex.id)}
-                  className="flex w-full items-center justify-between border-b border-gray-100 py-3 text-left hover:bg-gray-50"
+                  className="flex w-full items-center justify-between border-b border-gray-100 py-3 hover:bg-gray-50"
                 >
                   <span className="text-sm text-gray-900">{ex.name}</span>
                   {inDraft.length > 0 && (
                     <span className="text-[10px] uppercase text-gray-400">
-                      {CATEGORY_LABELS[ex.category]}
+                      {categoryMap[ex.category] ?? ex.category}
                     </span>
                   )}
-                </button>
+                </UnstyledButton>
               ))}
             </div>
           );

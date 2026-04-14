@@ -1,4 +1,5 @@
-import { NumberInput } from "@mantine/core";
+import { ActionIcon, Button, NumberInput } from "@mantine/core";
+import IconSolarCloseCircleBroken from "~icons/solar/close-circle-broken";
 
 import type { Exercise, Segment, WorkoutSet } from "~/db/index";
 
@@ -26,10 +27,9 @@ const SetRow = ({
   onAddSuperset,
 }: SetRowProps) => {
   const primary = set[0];
-  const isWeighted = (() => {
-    const ex = exercises[primaryExerciseId];
-    return ex && (ex.type === "weighted" || ex.type === "assisted");
-  })();
+  const ex = exercises[primaryExerciseId];
+  const isTimed = ex?.type === "timed";
+  const isWeighted = ex && (ex.type === "weighted" || ex.type === "assisted");
 
   const updateSegment = (segIdx: number, updated: Segment) => {
     const next = [...set];
@@ -41,41 +41,84 @@ const SetRow = ({
     onChange(set.filter((_, i) => i !== segIdx));
   };
 
+  const timedMinutes = Math.floor((primary.r ?? 0) / 60);
+  const timedSeconds = (primary.r ?? 0) % 60;
+
   return (
     <div className="rounded-xl border border-gray-200 px-3 py-3">
       <div className="flex items-center gap-2">
         <span className="min-w-[34px] text-[10px] font-medium uppercase tracking-wide text-gray-400">
           Set {index + 1}
         </span>
-        {isWeighted && (
-          <NumberInput
-            size="sm"
-            placeholder="kg"
-            step={0.5}
-            min={0}
-            value={primary.w ?? ""}
-            onChange={(v) => updateSegment(0, { ...primary, w: v === "" ? null : Number(v) })}
-            className="w-20"
-            styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
-          />
+
+        {isTimed ? (
+          <>
+            <NumberInput
+              size="sm"
+              placeholder="min"
+              min={0}
+              value={timedMinutes || ""}
+              onChange={(v) =>
+                updateSegment(0, { ...primary, r: (v === "" ? 0 : Number(v)) * 60 + timedSeconds })
+              }
+              className="w-16"
+              styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
+            />
+            <span className="text-sm text-gray-400">m</span>
+            <NumberInput
+              size="sm"
+              placeholder="sec"
+              min={0}
+              max={59}
+              value={timedSeconds || ""}
+              onChange={(v) =>
+                updateSegment(0, {
+                  ...primary,
+                  r: timedMinutes * 60 + (v === "" ? 0 : Number(v)),
+                })
+              }
+              className="w-16"
+              styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
+            />
+            <span className="text-sm text-gray-400">s</span>
+          </>
+        ) : (
+          <>
+            {isWeighted && (
+              <NumberInput
+                size="sm"
+                placeholder="kg"
+                step={0.5}
+                min={0}
+                value={primary.w ?? ""}
+                onChange={(v) => updateSegment(0, { ...primary, w: v === "" ? null : Number(v) })}
+                className="w-20"
+                styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
+              />
+            )}
+            {isWeighted && <span className="text-sm text-gray-400">×</span>}
+            <NumberInput
+              size="sm"
+              placeholder="reps"
+              min={0}
+              value={primary.r ?? ""}
+              onChange={(v) => updateSegment(0, { ...primary, r: v === "" ? 0 : Number(v) })}
+              className="w-16"
+              styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
+            />
+          </>
         )}
-        {isWeighted && <span className="text-sm text-gray-400">×</span>}
-        <NumberInput
+
+        <ActionIcon
+          variant="subtle"
+          color="gray"
           size="sm"
-          placeholder="reps"
-          min={0}
-          value={primary.r ?? ""}
-          onChange={(v) => updateSegment(0, { ...primary, r: v === "" ? 0 : Number(v) })}
-          className="w-16"
-          styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
-        />
-        <button
-          type="button"
           onClick={onRemove}
-          className="ml-auto text-lg text-gray-400 hover:text-gray-600"
+          className="ml-auto"
+          aria-label="Remove set"
         >
-          ×
-        </button>
+          <IconSolarCloseCircleBroken />
+        </ActionIcon>
       </div>
 
       {set.slice(1).map((seg, i) => (
@@ -89,22 +132,16 @@ const SetRow = ({
         />
       ))}
 
-      <div className="mt-3 flex gap-2 pl-10">
-        <button
-          type="button"
-          onClick={onAddDrop}
-          className="rounded-full bg-violet-100 px-3 py-1 text-[10px] font-semibold text-violet-700 hover:bg-violet-200"
-        >
-          + drop
-        </button>
-        <button
-          type="button"
-          onClick={onAddSuperset}
-          className="rounded-full bg-teal-100 px-3 py-1 text-[10px] font-semibold text-teal-700 hover:bg-teal-200"
-        >
-          + superset
-        </button>
-      </div>
+      {!isTimed && (
+        <div className="mt-3 flex gap-2 pl-10">
+          <Button size="xs" variant="light" color="violet" radius="xl" onClick={onAddDrop}>
+            + drop
+          </Button>
+          <Button size="xs" variant="light" color="teal" radius="xl" onClick={onAddSuperset}>
+            + superset
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

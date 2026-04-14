@@ -5,9 +5,10 @@ interface ChartPoint {
 
 interface WeightChartProps {
   data: ChartPoint[];
+  label?: string;
 }
 
-const WeightChart = ({ data }: WeightChartProps) => {
+const WeightChart = ({ data, label = "Top set weight (kg)" }: WeightChartProps) => {
   if (data.length < 2) return null;
 
   const W = 380;
@@ -36,7 +37,7 @@ const WeightChart = ({ data }: WeightChartProps) => {
 
   return (
     <div className="px-4 pb-2">
-      <p className="mb-1 text-[10px] uppercase tracking-wide text-gray-400">Top set weight (kg)</p>
+      <p className="mb-1 text-[10px] uppercase tracking-wide text-gray-400">{label}</p>
       <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full">
         <line
           x1={0}

@@ -8,6 +8,7 @@ import { createRoot } from "react-dom/client";
 import { router } from "./router";
 import theme from "./theme";
 
+import "@fontsource-variable/geist";
 import "@mantine/core/styles.layer.css";
 import "@mantine/dates/styles.layer.css";
 import "@mantine/notifications/styles.layer.css";

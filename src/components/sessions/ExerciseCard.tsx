@@ -1,3 +1,4 @@
+import { Anchor } from "@mantine/core";
 import { useNavigate } from "@tanstack/react-router";
 
 import type { Exercise, SessionExercise } from "~/db/index";
@@ -17,13 +18,18 @@ const ExerciseCard = ({ entry, exercises }: ExerciseCardProps) => {
   return (
     <div className="rounded-xl border border-gray-200 px-4 py-3">
       <div className="mb-2 flex items-baseline justify-between">
-        <button
-          type="button"
-          onClick={() => navigate({ to: "/exercises/$exerciseId", params: { exerciseId: ex.id } })}
-          className="text-sm font-semibold text-gray-900 hover:underline"
+        <Anchor
+          component="button"
+          onClick={() =>
+            void navigate({ to: "/exercises/$exerciseId", params: { exerciseId: ex.id } })
+          }
+          size="sm"
+          fw={600}
+          c="dark"
+          underline="hover"
         >
           {ex.name}
-        </button>
+        </Anchor>
         <span className="text-xs text-gray-400">{entry.sets.length} sets</span>
       </div>
       <div className="flex flex-col gap-1.5">

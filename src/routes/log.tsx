@@ -8,13 +8,14 @@ import IconSolarAltArrowLeftBroken from "~icons/solar/alt-arrow-left-broken";
 import SetRow from "~/components/log/SetRow";
 import SupersetPicker from "~/components/log/SupersetPicker";
 import { db, type Exercise, type WorkoutSet } from "~/db/index";
+import { useCategories } from "~/hooks/use-categories";
 import { useExercises } from "~/hooks/use-exercises";
 import { nanoid, todayIso } from "~/lib/calc";
-import { CATEGORY_LABELS, CATEGORY_ORDER } from "~/lib/constants";
 
 const LogPage = () => {
   const navigate = useNavigate();
   const exercises = useExercises();
+  const categories = useCategories();
 
   const [exerciseId, setExerciseId] = useState<string | null>(null);
   const [sets, setSets] = useState<WorkoutSet[]>([]);
@@ -32,18 +33,19 @@ const LogPage = () => {
     ) ?? {};
 
   // Mantine Select data grouped by category
-  const selectData = exercises
-    ? CATEGORY_ORDER.flatMap((cat) => {
-        const list = exercises.filter((ex) => ex.category === cat);
-        if (!list.length) return [];
-        return [
-          {
-            group: CATEGORY_LABELS[cat],
-            items: list.map((ex) => ({ label: ex.name, value: ex.id })),
-          },
-        ];
-      })
-    : [];
+  const selectData =
+    exercises && categories
+      ? categories.flatMap((cat) => {
+          const list = exercises.filter((ex) => ex.category === cat.id);
+          if (!list.length) return [];
+          return [
+            {
+              group: cat.name,
+              items: list.map((ex) => ({ label: ex.name, value: ex.id })),
+            },
+          ];
+        })
+      : [];
 
   const handleExerciseChange = (id: string | null) => {
     setExerciseId(id);
@@ -94,11 +96,14 @@ const LogPage = () => {
 
   const handleSave = async () => {
     if (!exerciseId) return;
+    const ex = exercisesMap[exerciseId];
+    const isTimed = ex?.type === "timed";
 
     const valid = sets.filter((set) =>
       set.every((seg) => {
-        const ex = exercisesMap[seg.exId];
-        const needsWeight = ex && (ex.type === "weighted" || ex.type === "assisted");
+        const segEx = exercisesMap[seg.exId];
+        if (segEx?.type === "timed") return seg.r > 0;
+        const needsWeight = segEx && (segEx.type === "weighted" || segEx.type === "assisted");
         if (needsWeight && seg.w == null) return false;
         return seg.r > 0;
       }),
@@ -107,7 +112,9 @@ const LogPage = () => {
     if (valid.length === 0) {
       notifications.show({
         title: "Incomplete sets",
-        message: "Fill in weight and reps for at least one set.",
+        message: isTimed
+          ? "Enter a duration for at least one set."
+          : "Fill in weight and reps for at least one set.",
         color: "red",
       });
       return;
@@ -156,14 +163,15 @@ const LogPage = () => {
   return (
     <div className="px-4 pb-6">
       <div className="py-4">
-        <button
-          type="button"
-          onClick={() => navigate({ to: "/sessions" })}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+        <Button
+          variant="subtle"
+          size="compact-sm"
+          color="gray"
+          leftSection={<IconSolarAltArrowLeftBroken />}
+          onClick={() => void navigate({ to: "/sessions" })}
         >
-          <IconSolarAltArrowLeftBroken className="text-base" />
           Cancel
-        </button>
+        </Button>
         <h1 className="mt-2 text-2xl font-semibold text-gray-900">Log exercise</h1>
         <p className="mt-0.5 text-xs text-gray-500">Adds to today's session</p>
       </div>
@@ -200,26 +208,29 @@ const LogPage = () => {
             ))}
           </div>
 
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            fullWidth
+            color="gray"
+            className="mb-5 border-dashed"
             onClick={addSet}
-            className="mb-5 w-full rounded-xl border border-dashed border-gray-300 py-3 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700"
           >
             + add set
-          </button>
+          </Button>
 
-          <Button fullWidth size="md" onClick={handleSave} loading={saving}>
+          <Button fullWidth size="md" onClick={() => void handleSave()} loading={saving}>
             Save to today's session
           </Button>
         </>
       )}
 
-      {exercises && (
+      {exercises && categories && (
         <SupersetPicker
           opened={pickerOpened}
           onClose={closePicker}
           onPick={addSuperset}
           exercises={exercises}
+          categories={categories}
           currentDraftExerciseIds={draftExerciseIds}
           primaryExerciseId={exerciseId ?? ""}
         />

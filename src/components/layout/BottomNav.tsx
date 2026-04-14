@@ -13,7 +13,7 @@ const BottomNav = () => {
     <nav className="flex items-center border-t border-t-gray-200 bg-white">
       <Link
         to="/sessions"
-        className="flex flex-1 flex-col items-center gap-1 py-3"
+        className="flex flex-1 flex-col items-center gap-1 py-3 no-underline"
         style={{
           color: isSessionsActive
             ? "var(--mantine-color-primary-6)"
@@ -24,7 +24,7 @@ const BottomNav = () => {
         <span className="text-[11px] font-medium">Sessions</span>
       </Link>
 
-      <Link to="/log" className="flex flex-none items-center justify-center px-6 py-2">
+      <Link to="/log" className="flex flex-none items-center justify-center px-6 py-2 no-underline">
         <span
           className="flex h-10 w-10 items-center justify-center rounded-full text-2xl font-light text-white"
           style={{
@@ -39,7 +39,7 @@ const BottomNav = () => {
 
       <Link
         to="/exercises"
-        className="flex flex-1 flex-col items-center gap-1 py-3"
+        className="flex flex-1 flex-col items-center gap-1 py-3 no-underline"
         style={{
           color: isExercisesActive
             ? "var(--mantine-color-primary-6)"

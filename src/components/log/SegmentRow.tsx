@@ -1,4 +1,5 @@
-import { Badge, NumberInput } from "@mantine/core";
+import { ActionIcon, Badge, NumberInput } from "@mantine/core";
+import IconSolarCloseCircleBroken from "~icons/solar/close-circle-broken";
 
 import type { Exercise, Segment } from "~/db/index";
 
@@ -56,13 +57,16 @@ const SegmentRow = ({
       <Badge size="xs" color={isSuperset ? "teal" : "violet"} variant="light">
         {isSuperset ? "SS" : "DS"}
       </Badge>
-      <button
-        type="button"
+      <ActionIcon
+        variant="subtle"
+        color="gray"
+        size="sm"
         onClick={onRemove}
-        className="ml-auto text-sm text-gray-400 hover:text-gray-600"
+        className="ml-auto"
+        aria-label="Remove segment"
       >
-        ×
-      </button>
+        <IconSolarCloseCircleBroken />
+      </ActionIcon>
     </div>
   );
 };

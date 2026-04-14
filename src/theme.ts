@@ -25,8 +25,8 @@ import {
 } from "./components/extended/index";
 
 const theme = createTheme({
-  fontFamily: '"Manrope", sans-serif',
-  headings: { fontFamily: '"Manrope", sans-serif' },
+  fontFamily: '"Geist Variable", sans-serif',
+  headings: { fontFamily: '"Geist Variable", sans-serif' },
   primaryColor: "primary",
   primaryShade: 6,
   colors: {
