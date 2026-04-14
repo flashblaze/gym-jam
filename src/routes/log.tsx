@@ -1,7 +1,9 @@
 import { Button, Select } from "@mantine/core";
+import { DateInput } from "@mantine/dates";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import dayjs from "dayjs";
 import { useState } from "react";
 import IconSolarAltArrowLeftBroken from "~icons/solar/alt-arrow-left-broken";
 
@@ -17,6 +19,7 @@ const LogPage = () => {
   const exercises = useExercises();
   const categories = useCategories();
 
+  const [logDate, setLogDate] = useState<string | null>(todayIso());
   const [exerciseId, setExerciseId] = useState<string | null>(null);
   const [sets, setSets] = useState<WorkoutSet[]>([]);
   const [pickerSetIndex, setPickerSetIndex] = useState<number | null>(null);
@@ -122,7 +125,7 @@ const LogPage = () => {
 
     setSaving(true);
     try {
-      const today = todayIso();
+      const today = logDate ?? todayIso();
       let sess = await db.sessions.where("date").equals(today).first();
 
       if (!sess) {
@@ -133,14 +136,15 @@ const LogPage = () => {
 
       if (!sess) throw new Error("Failed to create session");
 
-      const existing = sess.exercises.find((e) => e.exerciseId === exerciseId);
+      const savedSession = sess;
+      const existing = savedSession.exercises.find((e) => e.exerciseId === exerciseId);
       if (existing) {
         existing.sets.push(...valid);
       } else {
-        sess.exercises.push({ exerciseId, sets: valid });
+        savedSession.exercises.push({ exerciseId, sets: valid });
       }
 
-      await db.sessions.put(sess);
+      await db.sessions.put(savedSession);
 
       notifications.show({
         title: "Session saved",
@@ -148,7 +152,7 @@ const LogPage = () => {
         color: "green",
       });
 
-      void navigate({ to: "/sessions/$sessionId", params: { sessionId: sess.id } });
+      void navigate({ to: "/sessions/$sessionId", params: { sessionId: savedSession.id } });
     } catch (err) {
       notifications.show({
         title: "Save failed",
@@ -174,6 +178,17 @@ const LogPage = () => {
         </Button>
         <h1 className="mt-2 text-2xl font-semibold text-gray-900">Log exercise</h1>
         <p className="mt-0.5 text-xs text-gray-500">Adds to today's session</p>
+      </div>
+
+      <div className="mb-4">
+        <DateInput
+          label="Date"
+          value={logDate ? new Date(logDate + "T00:00:00") : null}
+          onChange={(v) => setLogDate(v ? dayjs(v).format("YYYY-MM-DD") : todayIso())}
+          valueFormat="DD MMM YYYY"
+          maxDate={new Date()}
+          className="w-full"
+        />
       </div>
 
       <div className="mb-5">
@@ -215,7 +230,7 @@ const LogPage = () => {
             className="mb-5 border-dashed"
             onClick={addSet}
           >
-            + add set
+            + Add set
           </Button>
 
           <Button fullWidth size="md" onClick={() => void handleSave()} loading={saving}>

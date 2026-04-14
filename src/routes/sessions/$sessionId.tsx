@@ -1,9 +1,11 @@
-import { ActionIcon, Badge, Button, NumberInput, Skeleton, TextInput } from "@mantine/core";
+import { ActionIcon, Badge, Button, NumberInput, Skeleton, Text, TextInput } from "@mantine/core";
+import { modals } from "@mantine/modals";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import IconSolarAltArrowLeftBroken from "~icons/solar/alt-arrow-left-broken";
 import IconSolarCloseCircleBroken from "~icons/solar/close-circle-broken";
 import IconSolarPenBroken from "~icons/solar/pen-broken";
+import IconSolarTrashBinMinimalisticBroken from "~icons/solar/trash-bin-minimalistic-broken";
 
 import SessionStats from "~/components/sessions/SessionStats";
 import type { Exercise, Segment, Session, WorkoutSet } from "~/db/index";
@@ -222,6 +224,24 @@ const SessionDetailPage = () => {
     return null;
   }
 
+  const deleteSession = () => {
+    modals.openConfirmModal({
+      title: "Delete session",
+      children: (
+        <Text size="sm">
+          Delete the session from {formatDate(session.date)}? This cannot be undone.
+        </Text>
+      ),
+      labels: { confirm: "Delete", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => {
+        void db.sessions.delete(session.id).then(() => {
+          void navigate({ to: "/sessions" });
+        });
+      },
+    });
+  };
+
   const startEdit = () => {
     setDraft(structuredClone(session));
     setEditing(true);
@@ -280,15 +300,26 @@ const SessionDetailPage = () => {
             Back
           </Button>
           {!editing && (
-            <Button
-              variant="subtle"
-              size="compact-sm"
-              color="gray"
-              leftSection={<IconSolarPenBroken />}
-              onClick={startEdit}
-            >
-              Edit
-            </Button>
+            <div className="flex items-center gap-1">
+              <ActionIcon
+                variant="subtle"
+                color="red"
+                size="sm"
+                onClick={deleteSession}
+                aria-label="Delete session"
+              >
+                <IconSolarTrashBinMinimalisticBroken />
+              </ActionIcon>
+              <Button
+                variant="subtle"
+                size="compact-sm"
+                color="gray"
+                leftSection={<IconSolarPenBroken />}
+                onClick={startEdit}
+              >
+                Edit
+              </Button>
+            </div>
           )}
         </div>
         <h1 className="mt-2 text-2xl font-semibold text-gray-900">{formatDate(displayed.date)}</h1>

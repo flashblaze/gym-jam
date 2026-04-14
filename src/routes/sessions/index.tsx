@@ -1,11 +1,26 @@
-import { Skeleton } from "@mantine/core";
+import { Skeleton, Text } from "@mantine/core";
+import { modals } from "@mantine/modals";
 import { createFileRoute } from "@tanstack/react-router";
 
 import SessionCard from "~/components/sessions/SessionCard";
+import { db } from "~/db/index";
 import { useSessions } from "~/hooks/use-sessions";
+import { formatDate } from "~/lib/calc";
 
 const SessionsPage = () => {
   const sessions = useSessions();
+
+  const handleDelete = (id: string, date: string) => {
+    modals.openConfirmModal({
+      title: "Delete session",
+      children: (
+        <Text size="sm">Delete the session from {formatDate(date)}? This cannot be undone.</Text>
+      ),
+      labels: { confirm: "Delete", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => void db.sessions.delete(id),
+    });
+  };
 
   return (
     <div className="px-4 pb-6">
@@ -28,7 +43,9 @@ const SessionsPage = () => {
             No sessions yet. Tap + to add one.
           </p>
         ) : (
-          sessions.map((s) => <SessionCard key={s.id} session={s} />)
+          sessions.map((s) => (
+            <SessionCard key={s.id} session={s} onDelete={() => handleDelete(s.id, s.date)} />
+          ))
         )}
       </div>
     </div>
