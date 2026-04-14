@@ -2,7 +2,7 @@ export function LogoMark({ size = 32 }: { size?: number }) {
   const r = Math.round(size * 0.27);
   return (
     <div
-      className="flex items-center justify-center shrink-0 bg-verdio-600"
+      className="flex items-center justify-center shrink-0 bg-primary-600"
       style={{
         width: size,
         height: size,

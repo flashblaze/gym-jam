@@ -27,10 +27,10 @@ import {
 const theme = createTheme({
   fontFamily: '"Manrope", sans-serif',
   headings: { fontFamily: '"Manrope", sans-serif' },
-  primaryColor: "verdio",
+  primaryColor: "primary",
   primaryShade: 6,
   colors: {
-    verdio: [
+    primary: [
       "#eff6ff",
       "#dbeafe",
       "#bfdbfe",

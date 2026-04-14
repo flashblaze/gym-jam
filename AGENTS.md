@@ -86,3 +86,91 @@ For GitHub Actions, consider using [`voidzero-dev/setup-vp`](https://github.com/
 - [ ] Run `vp install` after pulling remote changes and before getting started.
 - [ ] Run `vp check` and `vp test` to validate changes.
 <!--VITE PLUS END-->
+
+## Commands
+
+```sh
+vp dev       # Start Vite dev server
+vp build     # TypeScript check + production build (runs tsc -b && vp build)
+vp lint .    # Lint with oxlint
+vp preview   # Preview production build
+```
+
+**Linter/formatter**: `oxlint` and `oxfmt` via `vp` — not ESLint or Prettier.
+
+## Architecture
+
+Single-page React 19 app. No monorepo, no separate backend.
+
+```
+src/
+  components/
+    extended/   – Mantine components extended with project defaults (via .extend())
+    form/       – React Hook Form controlled wrappers for Mantine inputs
+  assets/       – Static images
+  App.tsx       – Root component
+  main.tsx      – Entry point (MantineProvider, ModalsProvider, Notifications)
+  theme.ts      – Mantine theme (colors, font, component overrides)
+  cn.ts         – clsx + tailwind-merge utility
+  index.css     – Global styles
+```
+
+### Stack
+
+- **React 19**, Mantine v9, TailwindCSS v4, React Hook Form, Zod, dayjs
+- **Dexie** (IndexedDB wrapper) + `dexie-react-hooks` for local persistence
+- **No router, no server-side API**
+- Path alias: `~` → `src/`
+
+### Mantine Setup
+
+`MantineProvider`, `ModalsProvider`, and `<Notifications position="top-center" />` are mounted in `main.tsx`. The theme lives in `src/theme.ts` and registers all extended components.
+
+**Extended components** (`src/components/extended/`): Each wraps a Mantine component via `.extend()` to apply project-wide default props/classNames. All are registered in the Mantine theme — use Mantine components directly (e.g. `<Button>`) and they will pick up the extended defaults automatically.
+
+**Controlled form components** (`src/components/form/`): Each wraps a Mantine input with `useFormContext()` from React Hook Form, wiring `register`, `errors`, and `isSubmitting`/`isLoading` read-only state. Named `Controlled[ComponentName]` (e.g. `ControlledTextInput`). Both sets export from their respective `index.ts` barrel files.
+
+## Toast Notifications
+
+`@mantine/notifications` is installed and `<Notifications position="top-center" />` is already mounted in `main.tsx`. Import and use directly:
+
+```ts
+import { notifications } from "@mantine/notifications";
+
+// Success
+notifications.show({
+  title: "Action completed",
+  message: "Descriptive success message.",
+  color: "green",
+});
+
+// Error
+notifications.show({
+  title: "Action failed",
+  message: err instanceof Error ? err.message : "Fallback error message.",
+  color: "red",
+});
+```
+
+- Keep toast titles short (2–4 words); put detail in `message`
+- Use `color: "green"` for success, `color: "red"` for errors
+
+## Styling
+
+- **Tailwind-first**: Use Tailwind utilities for all styling. Fall back to inline styles only for values Tailwind cannot express (complex gradients, dynamic JS values).
+- **Semantic HTML**: Use `<header>`, `<main>`, `<nav>`, `<section>`, `<article>`, `<footer>`, `<figure>`, `<h1>`–`<h6>`, `<p>`, `<span>`, `<dl>`/`<dt>`/`<dd>` instead of generic `<div>` where the element has a semantic role. Reserve `<div>` for pure layout wrappers with no semantic meaning.
+- **Mantine components**: Only use Mantine components that provide meaningful UI behavior beyond plain HTML — `Button`, `TextInput`, `PasswordInput`, `Table`, `CopyButton`, `Modal`, `Select`, `Checkbox`, `Badge`, `Timeline`, `Breadcrumbs`, `Anchor`, `Tabs`, `Accordion`, `Stepper`, `Notification`, `Tooltip`, `Popover`, `Menu`, `Drawer`, `Avatar`, `ActionIcon`, `Loader`, `Skeleton`, etc. Do NOT use Mantine layout/typography wrappers (`Text`, `Title`, `Group`, `Stack`, `Paper`, `Box`) — use native HTML + Tailwind instead.
+- **MANDATORY — check Mantine before building custom UI**: Before writing any custom component for interactive or composite UI patterns, you MUST first check whether `@mantine/core` already provides that component. Only build a custom implementation if Mantine has no equivalent.
+- **Colors**: Use Tailwind color classes or CSS variables — never hardcode hex values. The primary color is `primary` (blue scale registered in the Mantine theme).
+- **Icons**: Always use Iconify via `unplugin-icons` — **never write inline SVGs**. Installed icon packs: `@iconify-json/solar`, `@iconify-json/tabler`, `@iconify-json/charm`. Import icons as React components: `import IconSolarEdit from "~icons/solar/pen-2-broken"`. Prefer `solar/*-broken` style for a consistent stroke look. Use `tabler/*` or `charm/*` when solar lacks the right icon. Size icons with Tailwind text classes (`text-sm`, `text-base`, `text-lg`).
+- **`cn()` utility**: Use `cn()` from `~/cn` (clsx + tailwind-merge) for conditional class merging.
+
+## Code Conventions
+
+- TypeScript: `const`/`let` only, `===`, no `any` (prefer `unknown`), no `#private` (use TS `private`)
+- Naming: `UpperCamelCase` types/classes, `lowerCamelCase` variables/functions, `CONSTANT_CASE` module-level constants
+- Default exports for page/component files; named exports elsewhere
+
+## INSTRUCTIONS
+
+- Do not automatically `git add` any files
