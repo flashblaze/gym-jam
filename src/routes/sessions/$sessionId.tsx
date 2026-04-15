@@ -1,146 +1,23 @@
-import { ActionIcon, Badge, Button, NumberInput, Skeleton, TextInput } from "@mantine/core";
+import { ActionIcon, Badge, Button, Skeleton, TextInput } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import IconSolarAltArrowLeftBroken from "~icons/solar/alt-arrow-left-broken";
 import IconSolarCloseCircleBroken from "~icons/solar/close-circle-broken";
 import IconSolarPenBroken from "~icons/solar/pen-broken";
 import IconSolarTrashBinMinimalisticBroken from "~icons/solar/trash-bin-minimalistic-broken";
 
+import SetRow from "~/components/log/SetRow";
+import SupersetPicker from "~/components/log/SupersetPicker";
 import SessionStats from "~/components/sessions/SessionStats";
-import type { Exercise, Segment, Session, WorkoutSet } from "~/db/index";
+import type { Exercise, Session, WorkoutSet } from "~/db/index";
 import { db } from "~/db/index";
+import { useCategories } from "~/hooks/use-categories";
 import { useExercises } from "~/hooks/use-exercises";
 import { useSession } from "~/hooks/use-sessions";
 import { formatDate, formatDuration } from "~/lib/calc";
-
-// Edit-mode set row
-interface EditSetRowProps {
-  set: WorkoutSet;
-  setIndex: number;
-  primaryExerciseId: string;
-  exercises: Record<string, Exercise>;
-  onChange: (updated: WorkoutSet) => void;
-  onRemove: () => void;
-}
-
-const EditSetRow = ({
-  set,
-  setIndex,
-  primaryExerciseId,
-  exercises,
-  onChange,
-  onRemove,
-}: EditSetRowProps) => {
-  const updateSegment = (segIdx: number, updated: Segment) => {
-    const next = set.map((s, i) => (i === segIdx ? updated : s));
-    onChange(next);
-  };
-
-  return (
-    <div className="rounded-lg border border-white/8 bg-[#18182a] p-2">
-      <div className="mb-1.5 flex items-center justify-between">
-        <span className="text-xs text-[#565670]">S{setIndex + 1}</span>
-        <ActionIcon
-          variant="default"
-          color="gray"
-          size="sm"
-          onClick={onRemove}
-          aria-label="Remove set"
-        >
-          <IconSolarCloseCircleBroken />
-        </ActionIcon>
-      </div>
-      <div className="flex flex-col gap-1.5">
-        {set.map((seg, segIdx) => {
-          const isSuperset = seg.exId !== primaryExerciseId;
-          const ex = exercises[seg.exId];
-          const isTimed = ex?.type === "timed";
-          const isWeighted = ex && (ex.type === "weighted" || ex.type === "assisted");
-          const timedMin = Math.floor((seg.r ?? 0) / 60);
-          const timedSec = (seg.r ?? 0) % 60;
-
-          return (
-            <div key={segIdx} className="flex items-center gap-2">
-              {isSuperset && (
-                <span className="max-w-[70px] overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-[#565670]">
-                  {ex?.name.split(" ").slice(0, 2).join(" ")}
-                </span>
-              )}
-              {isTimed ? (
-                <>
-                  <NumberInput
-                    size="xs"
-                    placeholder="min"
-                    min={0}
-                    value={timedMin || ""}
-                    onChange={(v) =>
-                      updateSegment(segIdx, {
-                        ...seg,
-                        r: (v === "" ? 0 : Number(v)) * 60 + timedSec,
-                      })
-                    }
-                    className="w-14"
-                    styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
-                  />
-                  <span className="text-xs text-[#565670]">m</span>
-                  <NumberInput
-                    size="xs"
-                    placeholder="sec"
-                    min={0}
-                    max={59}
-                    value={timedSec || ""}
-                    onChange={(v) =>
-                      updateSegment(segIdx, {
-                        ...seg,
-                        r: timedMin * 60 + (v === "" ? 0 : Number(v)),
-                      })
-                    }
-                    className="w-14"
-                    styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
-                  />
-                  <span className="text-xs text-[#565670]">s</span>
-                </>
-              ) : (
-                <>
-                  {isWeighted && (
-                    <NumberInput
-                      size="xs"
-                      placeholder="kg"
-                      step={0.5}
-                      min={0}
-                      value={seg.w ?? ""}
-                      onChange={(v) =>
-                        updateSegment(segIdx, { ...seg, w: v === "" ? null : Number(v) })
-                      }
-                      className="w-16"
-                      styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
-                    />
-                  )}
-                  {isWeighted && <span className="text-xs text-[#565670]">×</span>}
-                  <NumberInput
-                    size="xs"
-                    placeholder="reps"
-                    min={0}
-                    value={seg.r ?? ""}
-                    onChange={(v) => updateSegment(segIdx, { ...seg, r: v === "" ? 0 : Number(v) })}
-                    className="w-14"
-                    styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
-                  />
-                </>
-              )}
-              {isSuperset && (
-                <Badge size="xs" color="teal" variant="light">
-                  SS
-                </Badge>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
 
 // Read-only set row (view mode)
 interface ViewSetRowProps {
@@ -157,7 +34,7 @@ const ViewSetRow = ({ set, index, primaryExerciseId, exercises }: ViewSetRowProp
   const isDropSet = set.length > 1 && !hasSuperset;
 
   const text = isTimed
-    ? set.map((seg) => formatDuration(seg.r)).join(" → ")
+    ? set.map((seg) => formatDuration(seg.r ?? 0)).join(" → ")
     : set
         .map((seg, j) => {
           const segEx = exercises[seg.exId];
@@ -167,7 +44,8 @@ const ViewSetRow = ({ set, index, primaryExerciseId, exercises }: ViewSetRowProp
               ? segEx.name.split(" ").slice(0, 2).join(" ") + " "
               : "";
           const w = seg.w != null ? seg.w + "×" : "×";
-          return prefix + name + w + seg.r;
+          const rDisp = seg.r == null ? "—" : String(seg.r);
+          return prefix + name + w + rDisp;
         })
         .join("");
 
@@ -194,6 +72,9 @@ const SessionDetailPage = () => {
   const navigate = useNavigate();
   const session = useSession(sessionId);
   const exercisesArr = useExercises();
+  const categories = useCategories();
+  const [pickerOpened, { open: openPicker, close: closePicker }] = useDisclosure(false);
+  const [pickerTarget, setPickerTarget] = useState<{ exIdx: number; setIdx: number } | null>(null);
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Session | null>(null);
@@ -207,7 +88,18 @@ const SessionDetailPage = () => {
       {} as Record<string, Exercise>,
     ) ?? {};
 
-  if (session === undefined || exercisesArr === undefined) {
+  const draftExerciseIds = useMemo(() => {
+    if (!draft) return new Set<string>();
+    const ids = new Set<string>();
+    for (const e of draft.exercises) {
+      for (const st of e.sets) {
+        for (const seg of st) ids.add(seg.exId);
+      }
+    }
+    return ids;
+  }, [draft]);
+
+  if (session === undefined || exercisesArr === undefined || categories === undefined) {
     return (
       <div className="px-4 py-5">
         <Skeleton height={28} width={120} mb={8} />
@@ -250,10 +142,32 @@ const SessionDetailPage = () => {
   const cancelEdit = () => {
     setDraft(null);
     setEditing(false);
+    setPickerTarget(null);
+    closePicker();
   };
 
   const saveEdit = async () => {
     if (!draft) return;
+    const invalid = draft.exercises.some((e) =>
+      e.sets.some((set) =>
+        set.some((seg) => {
+          const ex = exercises[seg.exId];
+          if (!ex) return true;
+          if (ex.type === "timed") return (seg.r ?? 0) <= 0;
+          const needsWeight = ex.type === "weighted" || ex.type === "assisted";
+          if (needsWeight && seg.w == null) return true;
+          return seg.r == null || seg.r <= 0;
+        }),
+      ),
+    );
+    if (invalid) {
+      notifications.show({
+        title: "Incomplete sets",
+        message: "Fill in weight, reps, or duration for every segment before saving.",
+        color: "red",
+      });
+      return;
+    }
     // Remove exercises with no sets
     const cleaned = { ...draft, exercises: draft.exercises.filter((e) => e.sets.length > 0) };
     await db.sessions.put(cleaned);
@@ -282,6 +196,46 @@ const SessionDetailPage = () => {
   const removeDraftExercise = (exIdx: number) => {
     if (!draft) return;
     setDraft({ ...draft, exercises: draft.exercises.filter((_, i) => i !== exIdx) });
+  };
+
+  const addDraftSet = (exIdx: number) => {
+    if (!draft) return;
+    const entry = draft.exercises[exIdx];
+    const last = entry.sets[entry.sets.length - 1];
+    const primaryW = last?.[0].w ?? null;
+    const ex = exercises[entry.exerciseId];
+    const initialR = ex?.type === "timed" ? 0 : null;
+    const newSet: WorkoutSet = [{ exId: entry.exerciseId, w: primaryW, r: initialR }];
+    const nextExercises = draft.exercises.map((e, i) =>
+      i === exIdx ? { ...e, sets: [...e.sets, newSet] } : e,
+    );
+    setDraft({ ...draft, exercises: nextExercises });
+  };
+
+  const addDraftDrop = (exIdx: number, setIdx: number) => {
+    if (!draft) return;
+    const entry = draft.exercises[exIdx];
+    const st = entry.sets[setIdx];
+    const primary = st[0];
+    const ex = exercises[entry.exerciseId];
+    const initialR = ex?.type === "timed" ? 0 : null;
+    updateDraftSet(exIdx, setIdx, [...st, { exId: entry.exerciseId, w: primary.w, r: initialR }]);
+  };
+
+  const openSupersetPicker = (exIdx: number, setIdx: number) => {
+    setPickerTarget({ exIdx, setIdx });
+    openPicker();
+  };
+
+  const addSuperset = (partnerExId: string) => {
+    if (!draft || !pickerTarget) return;
+    const { exIdx, setIdx } = pickerTarget;
+    const entry = draft.exercises[exIdx];
+    const st = entry.sets[setIdx];
+    const partnerEx = exercises[partnerExId];
+    const initialR = partnerEx?.type === "timed" ? 0 : null;
+    updateDraftSet(exIdx, setIdx, [...st, { exId: partnerExId, w: null, r: initialR }]);
+    setPickerTarget(null);
   };
 
   const displayed = editing && draft ? draft : session;
@@ -326,7 +280,7 @@ const SessionDetailPage = () => {
           <TextInput
             value={draft.name}
             onChange={(e) => setDraft({ ...draft, name: e.currentTarget.value })}
-            size="xs"
+            size="md"
             className="mt-1 max-w-[220px]"
           />
         ) : (
@@ -365,14 +319,16 @@ const SessionDetailPage = () => {
               <div className="flex flex-col gap-1.5">
                 {entry.sets.map((set, setIdx) =>
                   editing ? (
-                    <EditSetRow
+                    <SetRow
                       key={setIdx}
                       set={set}
-                      setIndex={setIdx}
+                      index={setIdx}
                       primaryExerciseId={entry.exerciseId}
                       exercises={exercises}
                       onChange={(updated) => updateDraftSet(exIdx, setIdx, updated)}
                       onRemove={() => removeDraftSet(exIdx, setIdx)}
+                      onAddDrop={() => addDraftDrop(exIdx, setIdx)}
+                      onAddSuperset={() => openSupersetPicker(exIdx, setIdx)}
                     />
                   ) : (
                     <ViewSetRow
@@ -383,6 +339,17 @@ const SessionDetailPage = () => {
                       exercises={exercises}
                     />
                   ),
+                )}
+                {editing && (
+                  <Button
+                    variant="default"
+                    fullWidth
+                    className="mt-1 border-dashed"
+                    size="sm"
+                    onClick={() => addDraftSet(exIdx)}
+                  >
+                    + Add set
+                  </Button>
                 )}
               </div>
             </div>
@@ -399,6 +366,21 @@ const SessionDetailPage = () => {
             Save
           </Button>
         </div>
+      )}
+
+      {editing && draft && (
+        <SupersetPicker
+          opened={pickerOpened}
+          onClose={() => {
+            setPickerTarget(null);
+            closePicker();
+          }}
+          onPick={addSuperset}
+          exercises={exercisesArr}
+          categories={categories}
+          currentDraftExerciseIds={draftExerciseIds}
+          primaryExerciseId={pickerTarget ? draft.exercises[pickerTarget.exIdx].exerciseId : ""}
+        />
       )}
     </div>
   );

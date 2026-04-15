@@ -4,7 +4,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import IconSolarAltArrowLeftBroken from "~icons/solar/alt-arrow-left-broken";
 
 import SetRow from "~/components/log/SetRow";
@@ -14,17 +14,24 @@ import { useCategories } from "~/hooks/use-categories";
 import { useExercises } from "~/hooks/use-exercises";
 import { nanoid, todayIso } from "~/lib/calc";
 
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
 const LogPage = () => {
   const navigate = useNavigate();
   const exercises = useExercises();
   const categories = useCategories();
+  const { date: dateFromSearch } = Route.useSearch();
 
-  const [logDate, setLogDate] = useState<string | null>(todayIso());
+  const [logDate, setLogDate] = useState<string | null>(() => dateFromSearch ?? todayIso());
   const [exerciseId, setExerciseId] = useState<string | null>(null);
   const [sets, setSets] = useState<WorkoutSet[]>([]);
   const [pickerSetIndex, setPickerSetIndex] = useState<number | null>(null);
   const [pickerOpened, { open: openPicker, close: closePicker }] = useDisclosure(false);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (dateFromSearch) setLogDate(dateFromSearch);
+  }, [dateFromSearch]);
 
   const exercisesMap: Record<string, Exercise> =
     exercises?.reduce(
@@ -52,7 +59,9 @@ const LogPage = () => {
   const handleExerciseChange = (id: string | null) => {
     setExerciseId(id);
     if (id && sets.length === 0) {
-      setSets([[{ exId: id, w: null, r: 0 }]]);
+      const ex = exercisesMap[id];
+      const initialR = ex?.type === "timed" ? 0 : null;
+      setSets([[{ exId: id, w: null, r: initialR }]]);
     }
   };
 
@@ -60,7 +69,9 @@ const LogPage = () => {
     if (!exerciseId) return;
     const last = sets[sets.length - 1];
     const primaryW = last?.[0].w ?? null;
-    setSets((prev) => [...prev, [{ exId: exerciseId, w: primaryW, r: 0 }]]);
+    const ex = exercisesMap[exerciseId];
+    const initialR = ex?.type === "timed" ? 0 : null;
+    setSets((prev) => [...prev, [{ exId: exerciseId, w: primaryW, r: initialR }]]);
   };
 
   const updateSet = (idx: number, updated: WorkoutSet) => {
@@ -74,7 +85,9 @@ const LogPage = () => {
   const addDrop = (setIdx: number) => {
     const set = sets[setIdx];
     const primary = set[0];
-    updateSet(setIdx, [...set, { exId: exerciseId!, w: primary.w, r: 0 }]);
+    const ex = exercisesMap[exerciseId!];
+    const initialR = ex?.type === "timed" ? 0 : null;
+    updateSet(setIdx, [...set, { exId: exerciseId!, w: primary.w, r: initialR }]);
   };
 
   const openSupersetPicker = (setIdx: number) => {
@@ -85,7 +98,9 @@ const LogPage = () => {
   const addSuperset = (partnerExId: string) => {
     if (pickerSetIndex === null) return;
     const set = sets[pickerSetIndex];
-    updateSet(pickerSetIndex, [...set, { exId: partnerExId, w: null, r: 0 }]);
+    const partnerEx = exercisesMap[partnerExId];
+    const initialR = partnerEx?.type === "timed" ? 0 : null;
+    updateSet(pickerSetIndex, [...set, { exId: partnerExId, w: null, r: initialR }]);
     setPickerSetIndex(null);
   };
 
@@ -103,10 +118,10 @@ const LogPage = () => {
     const valid = sets.filter((set) =>
       set.every((seg) => {
         const segEx = exercisesMap[seg.exId];
-        if (segEx?.type === "timed") return seg.r > 0;
+        if (segEx?.type === "timed") return (seg.r ?? 0) > 0;
         const needsWeight = segEx && (segEx.type === "weighted" || segEx.type === "assisted");
         if (needsWeight && seg.w == null) return false;
-        return seg.r > 0;
+        return seg.r != null && seg.r > 0;
       }),
     );
 
@@ -122,12 +137,11 @@ const LogPage = () => {
     }
 
     setSaving(true);
-    let savedSessionId: string | null = null;
     try {
       const today = logDate ?? todayIso();
 
       // Single transaction: one round-trip instead of 3–4 separate ones.
-      await db.transaction("rw", db.sessions, async () => {
+      const savedSessionId = await db.transaction("rw", db.sessions, async () => {
         let sess = await db.sessions.where("date").equals(today).first();
 
         if (!sess) {
@@ -144,7 +158,7 @@ const LogPage = () => {
         }
 
         await db.sessions.put(sess);
-        savedSessionId = sess.id;
+        return sess.id;
       });
 
       notifications.show({
@@ -153,9 +167,7 @@ const LogPage = () => {
         color: "green",
       });
 
-      if (savedSessionId) {
-        void navigate({ to: "/sessions/$sessionId", params: { sessionId: savedSessionId } });
-      }
+      void navigate({ to: `/sessions/${savedSessionId}` });
     } catch (err) {
       notifications.show({
         title: "Save failed",
@@ -179,12 +191,13 @@ const LogPage = () => {
           Cancel
         </Button>
         <h1 className="mt-4 text-2xl font-bold tracking-tight text-[#d4d4e0]">Log exercise</h1>
-        <p className="mt-0.5 text-xs text-[#565670]">Adds to the selected day's session</p>
+        <p className="mt-0.5 text-xs text-[#565670]">Adds to the selected day&apos;s session</p>
       </div>
 
       <div className="mb-4">
         <DateInput
           label="Date"
+          size="md"
           value={logDate ? new Date(logDate + "T00:00:00") : null}
           onChange={(v) => setLogDate(v ? dayjs(v).format("YYYY-MM-DD") : todayIso())}
           valueFormat="DD MMM YYYY"
@@ -197,6 +210,7 @@ const LogPage = () => {
         <Select
           label="Exercise"
           placeholder="Choose exercise…"
+          size="md"
           data={selectData}
           value={exerciseId}
           onChange={handleExerciseChange}
@@ -249,5 +263,12 @@ const LogPage = () => {
 };
 
 export const Route = createFileRoute("/log")({
+  validateSearch: (search: Record<string, unknown>): { date?: string } => {
+    const raw = search.date;
+    if (typeof raw !== "string" || !ISO_DATE.test(raw)) return {};
+    const d = dayjs(raw, "YYYY-MM-DD", true);
+    if (!d.isValid() || d.isAfter(dayjs(), "day")) return {};
+    return { date: raw };
+  },
   component: LogPage,
 });

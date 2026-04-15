@@ -22,7 +22,11 @@ export function useExerciseHistory(exerciseId: string) {
 
     for (const sess of sessions) {
       for (const exEntry of sess.exercises) {
-        if (exEntry.exerciseId !== exerciseId) continue;
+        const blockUsesExercise = exEntry.sets.some((set) =>
+          set.some((seg) => seg.exId === exerciseId),
+        );
+        if (!blockUsesExercise) continue;
+
         let maxWeight = 0;
         let bestTime = 0;
         const setStrs: string[] = [];
@@ -31,7 +35,8 @@ export function useExerciseHistory(exerciseId: string) {
           for (const seg of set) {
             if (seg.exId !== exerciseId) continue;
             if (isTimed) {
-              if (seg.r > bestTime) bestTime = seg.r;
+              const r = seg.r ?? 0;
+              if (r > bestTime) bestTime = r;
             } else {
               if (seg.w != null && seg.w > maxWeight) maxWeight = seg.w;
             }
@@ -41,8 +46,9 @@ export function useExerciseHistory(exerciseId: string) {
             const own = set
               .filter((seg) => seg.exId === exerciseId)
               .map((seg) => {
-                const m = Math.floor(seg.r / 60);
-                const s = seg.r % 60;
+                const sec = seg.r ?? 0;
+                const m = Math.floor(sec / 60);
+                const s = sec % 60;
                 if (m === 0) return `${s}s`;
                 if (s === 0) return `${m}m`;
                 return `${m}m ${s}s`;
@@ -52,7 +58,10 @@ export function useExerciseHistory(exerciseId: string) {
           } else {
             const own = set
               .filter((seg) => seg.exId === exerciseId)
-              .map((seg) => (seg.w != null ? seg.w + "×" : "×") + seg.r)
+              .map((seg) => {
+                const rep = seg.r == null ? "—" : String(seg.r);
+                return (seg.w != null ? seg.w + "×" : "×") + rep;
+              })
               .join("→");
             setStrs.push(own);
           }

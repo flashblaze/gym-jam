@@ -17,7 +17,8 @@ export interface Exercise {
 export interface Segment {
   exId: string;
   w: number | null;
-  r: number;
+  /** Reps or timed duration (seconds). `null` = not entered (non-timed). */
+  r: number | null;
 }
 
 export type WorkoutSet = Segment[];

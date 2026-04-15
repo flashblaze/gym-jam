@@ -125,6 +125,7 @@ export default defineConfig({
     "*": "vp check --fix",
   },
   fmt: {
+    ignorePatterns: ["src/routeTree.gen.ts"],
     experimentalSortImports: {
       newlinesBetween: true,
     },

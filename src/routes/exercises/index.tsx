@@ -1,8 +1,8 @@
-import { ActionIcon, Button, Skeleton, Text } from "@mantine/core";
+import { ActionIcon, Button, Skeleton, Text, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import IconSolarAddCircleBroken from "~icons/solar/add-circle-broken";
 import IconSolarCheckSquareBroken from "~icons/solar/check-square-broken";
 import IconSolarCloseCircleBroken from "~icons/solar/close-circle-broken";
@@ -15,6 +15,8 @@ import { useCategories } from "~/hooks/use-categories";
 import { useExercises } from "~/hooks/use-exercises";
 import { useSessions } from "~/hooks/use-sessions";
 
+const EXERCISES_SCROLL_KEY = "exercises-list-scroll";
+
 const ExercisesPage = () => {
   const exercises = useExercises();
   const sessions = useSessions();
@@ -22,21 +24,46 @@ const ExercisesPage = () => {
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem(EXERCISES_SCROLL_KEY);
+    const main = document.querySelector("main");
+    if (raw != null && main) {
+      const y = Number.parseInt(raw, 10);
+      if (!Number.isNaN(y)) main.scrollTop = y;
+    }
+    return () => {
+      const mainEl = document.querySelector("main");
+      if (mainEl) sessionStorage.setItem(EXERCISES_SCROLL_KEY, String(mainEl.scrollTop));
+    };
+  }, []);
 
   const lastDateMap: Record<string, string> = {};
   if (sessions) {
     for (const sess of sessions) {
-      for (const ex of sess.exercises) {
-        const existing = lastDateMap[ex.exerciseId];
-        if (!existing || sess.date > existing) {
-          lastDateMap[ex.exerciseId] = sess.date;
+      for (const block of sess.exercises) {
+        for (const set of block.sets) {
+          for (const seg of set) {
+            const existing = lastDateMap[seg.exId];
+            if (!existing || sess.date > existing) {
+              lastDateMap[seg.exId] = sess.date;
+            }
+          }
         }
       }
     }
   }
 
+  const filteredExercises = useMemo(() => {
+    if (!exercises) return undefined;
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return exercises;
+    return exercises.filter((ex) => ex.name.toLowerCase().includes(q));
+  }, [exercises, searchQuery]);
+
   const byCategory: Record<string, Exercise[]> =
-    exercises?.reduce(
+    filteredExercises?.reduce(
       (acc, ex) => {
         (acc[ex.category] ??= []).push(ex);
         return acc;
@@ -176,6 +203,19 @@ const ExercisesPage = () => {
           )}
         </div>
       </header>
+
+      {!loading && exercises && exercises.length > 0 && (
+        <div className="mb-4">
+          <TextInput
+            label="Search exercises"
+            placeholder="Filter by name…"
+            size="md"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.currentTarget.value)}
+            className="w-full"
+          />
+        </div>
+      )}
 
       {loading ? (
         <div className="flex flex-col gap-2">

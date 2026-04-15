@@ -45,7 +45,7 @@ const SetRow = ({
   const timedSeconds = (primary.r ?? 0) % 60;
 
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-[#18182a] px-3 py-3">
+    <div className="rounded-xl border border-white/8 bg-[#18182a] px-3 py-3">
       <div className="flex items-center gap-2">
         <span className="min-w-[34px] text-[10px] font-medium uppercase tracking-widest text-[#565670]">
           S{index + 1}
@@ -54,19 +54,19 @@ const SetRow = ({
         {isTimed ? (
           <>
             <NumberInput
-              size="sm"
+              size="md"
               placeholder="min"
               min={0}
               value={timedMinutes || ""}
               onChange={(v) =>
                 updateSegment(0, { ...primary, r: (v === "" ? 0 : Number(v)) * 60 + timedSeconds })
               }
-              className="w-16"
+              className="w-20"
               styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
             />
             <span className="text-sm text-[#565670]">m</span>
             <NumberInput
-              size="sm"
+              size="md"
               placeholder="sec"
               min={0}
               max={59}
@@ -77,7 +77,7 @@ const SetRow = ({
                   r: timedMinutes * 60 + (v === "" ? 0 : Number(v)),
                 })
               }
-              className="w-16"
+              className="w-20"
               styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
             />
             <span className="text-sm text-[#565670]">s</span>
@@ -86,24 +86,24 @@ const SetRow = ({
           <>
             {isWeighted && (
               <NumberInput
-                size="sm"
+                size="md"
                 placeholder="kg"
                 step={0.5}
                 min={0}
                 value={primary.w ?? ""}
                 onChange={(v) => updateSegment(0, { ...primary, w: v === "" ? null : Number(v) })}
-                className="w-20"
+                className="w-24"
                 styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
               />
             )}
-            {isWeighted && <span className="text-sm text-[#565670]">×</span>}
+            {isWeighted && <span className="text-sm text-[#565670]">x</span>}
             <NumberInput
-              size="sm"
+              size="md"
               placeholder="reps"
               min={0}
               value={primary.r ?? ""}
-              onChange={(v) => updateSegment(0, { ...primary, r: v === "" ? 0 : Number(v) })}
-              className="w-16"
+              onChange={(v) => updateSegment(0, { ...primary, r: v === "" ? null : Number(v) })}
+              className="w-20"
               styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
             />
           </>

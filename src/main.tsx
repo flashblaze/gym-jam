@@ -18,7 +18,12 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <MantineProvider theme={theme} forceColorScheme="dark">
       <ModalsProvider>
-        <Notifications position="top-center" />
+        <Notifications
+          position="top-center"
+          autoClose={4000}
+          limit={5}
+          pauseResetOnHover="notification"
+        />
         <RouterProvider router={router} />
       </ModalsProvider>
     </MantineProvider>

@@ -17,7 +17,7 @@ const SetRow = ({ set, primaryExerciseId, index, exercises }: SetRowProps) => {
   const isDropSet = set.length > 1 && !hasSuperset;
 
   const text = isTimed
-    ? set.map((seg) => formatDuration(seg.r)).join(" → ")
+    ? set.map((seg) => formatDuration(seg.r ?? 0)).join(" → ")
     : set
         .map((seg, j) => {
           const segEx = exercises[seg.exId];
@@ -27,7 +27,8 @@ const SetRow = ({ set, primaryExerciseId, index, exercises }: SetRowProps) => {
               ? segEx.name.split(" ").slice(0, 2).join(" ") + " "
               : "";
           const w = seg.w != null ? seg.w + "×" : "×";
-          return prefix + name + w + seg.r;
+          const rDisp = seg.r == null ? "—" : String(seg.r);
+          return prefix + name + w + rDisp;
         })
         .join("");
 

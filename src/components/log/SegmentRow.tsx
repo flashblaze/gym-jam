@@ -34,24 +34,24 @@ const SegmentRow = ({
       )}
       {isWeighted && (
         <NumberInput
-          size="xs"
+          size="md"
           placeholder="kg"
           step={0.5}
           min={0}
           value={segment.w ?? ""}
           onChange={(v) => onChange({ ...segment, w: v === "" ? null : Number(v) })}
-          className="w-16"
+          className="w-20"
           styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
         />
       )}
       {isWeighted && <span className="text-xs text-[#565670]">×</span>}
       <NumberInput
-        size="xs"
+        size="md"
         placeholder="reps"
         min={0}
         value={segment.r ?? ""}
-        onChange={(v) => onChange({ ...segment, r: v === "" ? 0 : Number(v) })}
-        className="w-14"
+        onChange={(v) => onChange({ ...segment, r: v === "" ? null : Number(v) })}
+        className="w-20"
         styles={{ input: { textAlign: "center", fontFamily: "monospace" } }}
       />
       <Badge size="xs" color={isSuperset ? "teal" : "violet"} variant="light">
