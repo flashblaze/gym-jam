@@ -38,7 +38,7 @@ const EditSetRow = ({
   };
 
   return (
-    <div className="rounded-lg border border-white/[0.08] bg-[#18182a] p-2">
+    <div className="rounded-lg border border-white/8 bg-[#18182a] p-2">
       <div className="mb-1.5 flex items-center justify-between">
         <span className="text-xs text-[#565670]">S{setIndex + 1}</span>
         <ActionIcon
@@ -301,13 +301,12 @@ const SessionDetailPage = () => {
           {!editing && (
             <div className="flex items-center gap-1">
               <ActionIcon
-                variant="default"
-                color="red"
+                variant="transparent"
                 size="sm"
                 onClick={deleteSession}
                 aria-label="Delete session"
               >
-                <IconSolarTrashBinMinimalisticBroken />
+                <IconSolarTrashBinMinimalisticBroken className="text-red-400/60" />
               </ActionIcon>
               <Button
                 variant="default"
@@ -345,7 +344,7 @@ const SessionDetailPage = () => {
           return (
             <div
               key={entry.exerciseId}
-              className="rounded-xl border border-white/[0.08] bg-[#18182a] px-4 py-3"
+              className="rounded-xl border border-white/8 bg-[#18182a] px-4 py-3"
             >
               <div className="mb-2 flex items-baseline justify-between">
                 <span className="text-sm font-semibold text-[#d4d4e0]">{ex.name}</span>
@@ -353,13 +352,12 @@ const SessionDetailPage = () => {
                   <span className="text-xs text-[#565670]">{entry.sets.length} sets</span>
                   {editing && (
                     <ActionIcon
-                      variant="default"
-                      color="red"
+                      variant="transparent"
                       size="sm"
                       onClick={() => removeDraftExercise(exIdx)}
                       aria-label="Remove exercise"
                     >
-                      <IconSolarCloseCircleBroken />
+                      <IconSolarCloseCircleBroken className="text-red-400/60" />
                     </ActionIcon>
                   )}
                 </div>

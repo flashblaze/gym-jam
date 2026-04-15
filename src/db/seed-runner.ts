@@ -1,5 +1,5 @@
 import { db } from "./index";
-import { SEED_CATEGORIES, SEED_EXERCISES, SEED_SESSIONS } from "./seed";
+import { SEED_CATEGORIES, SEED_EXERCISES } from "./seed";
 
 export async function seedIfEmpty() {
   // Run both count checks in parallel so neither blocks the other.
@@ -12,9 +12,6 @@ export async function seedIfEmpty() {
   }
 
   if (exCount === 0) {
-    await db.transaction("rw", db.exercises, db.sessions, async () => {
-      await db.exercises.bulkAdd(SEED_EXERCISES);
-      await db.sessions.bulkAdd(SEED_SESSIONS);
-    });
+    await db.exercises.bulkAdd(SEED_EXERCISES);
   }
 }

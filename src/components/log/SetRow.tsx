@@ -134,10 +134,10 @@ const SetRow = ({
 
       {!isTimed && (
         <div className="mt-3 flex gap-2 pl-10">
-          <Button size="xs" variant="filled" color="violet" radius="xl" onClick={onAddDrop}>
+          <Button size="xs" variant="default" radius="xl" onClick={onAddDrop}>
             + Drop
           </Button>
-          <Button size="xs" variant="filled" color="teal" radius="xl" onClick={onAddSuperset}>
+          <Button size="xs" variant="default" radius="xl" onClick={onAddSuperset}>
             + Superset
           </Button>
         </div>

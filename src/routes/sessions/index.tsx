@@ -1,6 +1,9 @@
-import { Skeleton, Text } from "@mantine/core";
+import { ActionIcon, Button, Skeleton, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import IconSolarCheckSquareBroken from "~icons/solar/check-square-broken";
+import IconSolarCloseCircleBroken from "~icons/solar/close-circle-broken";
 
 import SessionCard from "~/components/sessions/SessionCard";
 import { db } from "~/db/index";
@@ -9,6 +12,8 @@ import { formatDate } from "~/lib/calc";
 
 const SessionsPage = () => {
   const sessions = useSessions();
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const handleDelete = (id: string, date: string) => {
     modals.openConfirmModal({
@@ -22,13 +27,85 @@ const SessionsPage = () => {
     });
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkDelete = () => {
+    const count = selectedIds.size;
+    modals.openConfirmModal({
+      title: "Delete sessions",
+      children: (
+        <Text size="sm">
+          Delete {count} session{count !== 1 ? "s" : ""}? This cannot be undone.
+        </Text>
+      ),
+      labels: { confirm: `Delete (${count})`, cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => {
+        void db.sessions.bulkDelete(Array.from(selectedIds)).then(() => {
+          exitSelectionMode();
+        });
+      },
+    });
+  };
+
   return (
     <div className="px-4 pb-6">
-      <header className="py-6">
-        <h1 className="text-3xl font-bold tracking-tight text-[#d4d4e0]">Workouts</h1>
-        <p className="mt-1 text-xs text-[#565670]">
-          {sessions ? `${sessions.length} sessions logged` : "Loading…"}
-        </p>
+      <header className="flex items-center justify-between py-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-[#d4d4e0]">Workouts</h1>
+          <p className="mt-1 text-xs text-[#565670]">
+            {sessions ? `${sessions.length} sessions logged` : "Loading…"}
+          </p>
+        </div>
+        {sessions && sessions.length > 0 && (
+          <div className="flex items-center gap-2">
+            {selectionMode ? (
+              <>
+                <Button
+                  variant="filled"
+                  color="red"
+                  size="xs"
+                  disabled={selectedIds.size === 0}
+                  onClick={handleBulkDelete}
+                >
+                  Delete ({selectedIds.size})
+                </Button>
+                <ActionIcon
+                  variant="default"
+                  size="lg"
+                  onClick={exitSelectionMode}
+                  aria-label="Cancel selection"
+                >
+                  <IconSolarCloseCircleBroken className="text-xl" />
+                </ActionIcon>
+              </>
+            ) : (
+              <ActionIcon
+                variant="default"
+                size="lg"
+                onClick={() => setSelectionMode(true)}
+                aria-label="Select sessions"
+              >
+                <IconSolarCheckSquareBroken className="text-xl" />
+              </ActionIcon>
+            )}
+          </div>
+        )}
       </header>
 
       <div className="flex flex-col gap-2">
@@ -44,7 +121,14 @@ const SessionsPage = () => {
           </p>
         ) : (
           sessions.map((s) => (
-            <SessionCard key={s.id} session={s} onDelete={() => handleDelete(s.id, s.date)} />
+            <SessionCard
+              key={s.id}
+              session={s}
+              onDelete={() => handleDelete(s.id, s.date)}
+              selectionMode={selectionMode}
+              isSelected={selectedIds.has(s.id)}
+              onToggleSelect={() => toggleSelect(s.id)}
+            />
           ))
         )}
       </div>

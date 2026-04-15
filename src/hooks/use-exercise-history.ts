@@ -3,6 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "~/db/index";
 
 export interface ExerciseHistoryEntry {
+  sessionId: string;
   date: string;
   maxWeight: number; // 0 for timed exercises
   bestTime: number; // seconds; 0 for non-timed exercises
@@ -57,7 +58,7 @@ export function useExerciseHistory(exerciseId: string) {
           }
         }
 
-        entries.push({ date: sess.date, maxWeight, bestTime, sets: setStrs });
+        entries.push({ sessionId: sess.id, date: sess.date, maxWeight, bestTime, sets: setStrs });
       }
     }
 

@@ -1,5 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import IconSolarDumbbellBold from "~icons/solar/dumbbell-bold";
 import IconSolarDumbbellBroken from "~icons/solar/dumbbell-broken";
+import IconSolarListCheckBold from "~icons/solar/list-check-bold";
 import IconSolarListCheckBroken from "~icons/solar/list-check-broken";
 
 const BottomNav = () => {
@@ -19,7 +21,11 @@ const BottomNav = () => {
         {isSessionsActive && (
           <span className="absolute top-0 left-1/2 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-[#f59e0b]" />
         )}
-        <IconSolarListCheckBroken className="text-xl" />
+        {isSessionsActive ? (
+          <IconSolarListCheckBold className="text-xl" />
+        ) : (
+          <IconSolarListCheckBroken className="text-xl" />
+        )}
         <span className="text-[11px] font-medium tracking-wide">Sessions</span>
       </Link>
 
@@ -38,9 +44,13 @@ const BottomNav = () => {
         style={{ color: isExercisesActive ? "#f59e0b" : "#565670" }}
       >
         {isExercisesActive && (
-          <span className="absolute top-0 left-1/2 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-[#f59e0b]" />
+          <span className="absolute top-0 left-1/2 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-primary-500" />
         )}
-        <IconSolarDumbbellBroken className="text-xl" />
+        {isExercisesActive ? (
+          <IconSolarDumbbellBold className="text-xl" />
+        ) : (
+          <IconSolarDumbbellBroken className="text-xl" />
+        )}
         <span className="text-[11px] font-medium tracking-wide">Exercises</span>
       </Link>
     </nav>

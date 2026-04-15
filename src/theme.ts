@@ -24,18 +24,18 @@ import {
   ExtendedTimeInput,
 } from "./components/extended/index";
 
-// Amber — warm energy against the dark
+// Black — high contrast, clean against the dark UI
 const primary: MantineColorsTuple = [
-  "#fffbeb",
-  "#fef3c7",
-  "#fde68a",
-  "#fcd34d",
-  "#fbbf24",
-  "#f59e0b",
-  "#d97706",
-  "#b45309",
-  "#92400e",
-  "#78350f",
+  "#f5f5f5",
+  "#e0e0e0",
+  "#bdbdbd",
+  "#9e9e9e",
+  "#757575",
+  "#424242",
+  "#212121",
+  "#111111",
+  "#0a0a0a",
+  "#000000",
 ];
 
 // Deep dark, slightly cool-toned
