@@ -159,7 +159,7 @@ notifications.show({
 
 - **Tailwind-first**: Use Tailwind utilities for all styling. Fall back to inline styles only for values Tailwind cannot express (complex gradients, dynamic JS values).
 - **Semantic HTML**: Use `<header>`, `<main>`, `<nav>`, `<section>`, `<article>`, `<footer>`, `<figure>`, `<h1>`–`<h6>`, `<p>`, `<span>`, `<dl>`/`<dt>`/`<dd>` instead of generic `<div>` where the element has a semantic role. Reserve `<div>` for pure layout wrappers with no semantic meaning.
-- **Mantine components**: Only use Mantine components that provide meaningful UI behavior beyond plain HTML — `Button`, `TextInput`, `PasswordInput`, `Table`, `CopyButton`, `Modal`, `Select`, `Checkbox`, `Badge`, `Timeline`, `Breadcrumbs`, `Anchor`, `Tabs`, `Accordion`, `Stepper`, `Notification`, `Tooltip`, `Popover`, `Menu`, `Drawer`, `Avatar`, `ActionIcon`, `Loader`, `Skeleton`, etc. Do NOT use Mantine layout/typography wrappers (`Text`, `Title`, `Group`, `Stack`, `Paper`, `Box`) — use native HTML + Tailwind instead.
+- **Mantine components**: Only use Mantine components that provide meaningful UI behavior beyond plain HTML — `Button`, `TextInput`, `PasswordInput`, `Table`, `CopyButton`, `Modal`, `Select`, `Checkbox`, `Badge`, `Timeline`, `Breadcrumbs`, `Anchor`, `Tabs`, `Accordion`, `Stepper`, `Notification`, `Tooltip`, `Popover`, `Menu`, `Drawer`, `Avatar`, `ActionIcon`, `Loader`, `Skeleton`, etc. Do NOT use Mantine layout/typography wrappers (`Text`, `Title`, `Group`, `Stack`, `Paper`, `Box`, `Container`, `Flex`, `Grid`, `SimpleGrid`, `Center`, `Space`, `Divider`) — use native HTML + Tailwind instead.
 - **MANDATORY — check Mantine before building custom UI**: Before writing any custom component for interactive or composite UI patterns, you MUST first check whether `@mantine/core` already provides that component. Only build a custom implementation if Mantine has no equivalent.
 - **Colors**: Use Tailwind color classes or CSS variables — never hardcode hex values. The primary color is `primary` (blue scale registered in the Mantine theme).
 - **Icons**: Always use Iconify via `unplugin-icons` — **never write inline SVGs**. Installed icon packs: `@iconify-json/solar`, `@iconify-json/tabler`, `@iconify-json/charm`. Import icons as React components: `import IconSolarEdit from "~icons/solar/pen-2-broken"`. Prefer `solar/*-broken` style for a consistent stroke look. Use `tabler/*` or `charm/*` when solar lacks the right icon. Size icons with Tailwind text classes (`text-sm`, `text-base`, `text-lg`).
@@ -170,6 +170,35 @@ notifications.show({
 - TypeScript: `const`/`let` only, `===`, no `any` (prefer `unknown`), no `#private` (use TS `private`)
 - Naming: `UpperCamelCase` types/classes, `lowerCamelCase` variables/functions, `CONSTANT_CASE` module-level constants
 - Default exports for page/component files; named exports elsewhere
+
+## Code Quality
+
+Apply these criteria when writing or reviewing code:
+
+### Comments
+
+- Write no comments by default. Add one only when the **why** is non-obvious: a hidden constraint, a subtle invariant, or a workaround for a specific bug.
+- Never leave deliberation or design-debate comments in production code (e.g. "// should we use X or Y?"). That belongs in PR descriptions or planning docs.
+- Never describe what the code does — well-named identifiers already do that.
+
+### Duplication
+
+- Extract shared logic into named helpers the moment it appears in two places. Prefer a single exported function over two inline copies, even when they look trivial.
+- Name helpers after what they encode or decode, not after the caller (e.g. `encodeBlockExId` / `decodeBlockExId`, not `formatForCsv`).
+
+### Type casts
+
+- Remove redundant `as` casts when TypeScript can already infer the type (e.g. via a generic parameter).
+- When a cast is unavoidable, use the most precise type (`as ArrayBuffer`, not `as BlobPart`) so the intent is clear and future callers get accurate types.
+
+### Validation
+
+- Validate all numeric fields at system boundaries (import, form submit): check non-negative for weights, positive for durations, and any type-specific rules.
+- Only validate at boundaries — trust internal functions and framework guarantees.
+
+### Tests
+
+- Reference exported constants and helpers instead of hardcoding magic values (e.g. `encodeBlockExId(0, "ex1")` not `"0_ex1"`). This keeps tests correct if the encoding format changes.
 
 ## INSTRUCTIONS
 

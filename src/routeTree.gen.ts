@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LogRouteImport } from './routes/log'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SessionsIndexRouteImport } from './routes/sessions/index'
@@ -16,6 +17,11 @@ import { Route as ExercisesIndexRouteImport } from './routes/exercises/index'
 import { Route as SessionsSessionIdRouteImport } from './routes/sessions/$sessionId'
 import { Route as ExercisesExerciseIdRouteImport } from './routes/exercises/$exerciseId'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LogRoute = LogRouteImport.update({
   id: '/log',
   path: '/log',
@@ -50,6 +56,7 @@ const ExercisesExerciseIdRoute = ExercisesExerciseIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/log': typeof LogRoute
+  '/settings': typeof SettingsRoute
   '/exercises/$exerciseId': typeof ExercisesExerciseIdRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/exercises/': typeof ExercisesIndexRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/log': typeof LogRoute
+  '/settings': typeof SettingsRoute
   '/exercises/$exerciseId': typeof ExercisesExerciseIdRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/exercises': typeof ExercisesIndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/log': typeof LogRoute
+  '/settings': typeof SettingsRoute
   '/exercises/$exerciseId': typeof ExercisesExerciseIdRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/exercises/': typeof ExercisesIndexRoute
@@ -77,6 +86,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/log'
+    | '/settings'
     | '/exercises/$exerciseId'
     | '/sessions/$sessionId'
     | '/exercises/'
@@ -85,6 +95,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/log'
+    | '/settings'
     | '/exercises/$exerciseId'
     | '/sessions/$sessionId'
     | '/exercises'
@@ -93,6 +104,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/log'
+    | '/settings'
     | '/exercises/$exerciseId'
     | '/sessions/$sessionId'
     | '/exercises/'
@@ -102,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LogRoute: typeof LogRoute
+  SettingsRoute: typeof SettingsRoute
   ExercisesExerciseIdRoute: typeof ExercisesExerciseIdRoute
   SessionsSessionIdRoute: typeof SessionsSessionIdRoute
   ExercisesIndexRoute: typeof ExercisesIndexRoute
@@ -110,6 +123,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/log': {
       id: '/log'
       path: '/log'
@@ -158,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LogRoute: LogRoute,
+  SettingsRoute: SettingsRoute,
   ExercisesExerciseIdRoute: ExercisesExerciseIdRoute,
   SessionsSessionIdRoute: SessionsSessionIdRoute,
   ExercisesIndexRoute: ExercisesIndexRoute,
