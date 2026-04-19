@@ -243,3 +243,60 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 2. Use `detect_changes` for code review.
 3. Use `get_affected_flows` to understand impact.
 4. Use `query_graph` pattern="tests_for" to check coverage.
+
+### Token Efficiency Rules
+
+- ALWAYS start with `get_minimal_context(task="<your task>")` before any other graph tool.
+- Use `detail_level="minimal"` on all calls. Only escalate to "standard" when minimal is insufficient.
+- Target: complete any review/debug/refactor task in ≤5 tool calls and ≤800 total output tokens.
+
+## Workflows
+
+### Explore Codebase
+
+Use the code-review-graph MCP tools to navigate and understand the codebase.
+
+1. Run `list_graph_stats` to see overall codebase metrics.
+2. Run `get_architecture_overview` for high-level community structure.
+3. Use `list_communities` to find major modules, then `get_community` for details.
+4. Use `semantic_search_nodes` to find specific functions or classes.
+5. Use `query_graph` with patterns like `callers_of`, `callees_of`, `imports_of` to trace relationships.
+6. Use `list_flows` and `get_flow` to understand execution paths.
+
+Tips: start broad (stats, architecture) then narrow down. Use `children_of` on a file to see all its functions. Use `find_large_functions` to identify complex code.
+
+### Review Changes
+
+Perform a risk-aware code review using the knowledge graph.
+
+1. Run `detect_changes` to get risk-scored change analysis.
+2. Run `get_affected_flows` to find impacted execution paths.
+3. For each high-risk function, run `query_graph` with `pattern="tests_for"` to check test coverage.
+4. Run `get_impact_radius` to understand the blast radius.
+5. For any untested changes, suggest specific test cases.
+
+Output: group findings by risk level (high/medium/low) with what changed, test coverage status, suggested improvements, and merge recommendation.
+
+### Debug Issue
+
+Systematically trace and debug issues using the knowledge graph.
+
+1. Use `semantic_search_nodes` to find code related to the issue.
+2. Use `query_graph` with `callers_of` and `callees_of` to trace call chains.
+3. Use `get_flow` to see full execution paths through suspected areas.
+4. Run `detect_changes` to check if recent changes caused the issue.
+5. Use `get_impact_radius` on suspected files to see what else is affected.
+
+Tips: check both callers and callees for full context. Look at affected flows to find the entry point that triggers the bug.
+
+### Refactor Safely
+
+Plan and execute refactoring with confidence using dependency analysis.
+
+1. Use `refactor_tool` with `mode="suggest"` for community-driven refactoring suggestions.
+2. Use `refactor_tool` with `mode="dead_code"` to find unreferenced code.
+3. For renames, use `refactor_tool` with `mode="rename"` to preview all affected locations.
+4. Use `apply_refactor_tool` with the `refactor_id` to apply renames.
+5. After changes, run `detect_changes` to verify the refactoring impact.
+
+Safety: always preview before applying. Check `get_impact_radius` before major refactors. Use `get_affected_flows` to ensure no critical paths are broken.
