@@ -86,6 +86,11 @@ function SettingsRoute() {
 
       <div className="flex flex-col gap-6">
         <section>
+          <h2 className="mb-1 text-lg font-semibold tracking-tight text-[#d4d4e0]">About</h2>
+          <p className="text-sm text-[#565670]">Version {__APP_VERSION__}</p>
+        </section>
+
+        <section>
           <h2 className="mb-2 text-lg font-semibold tracking-tight text-[#d4d4e0]">
             Data Management
           </h2>

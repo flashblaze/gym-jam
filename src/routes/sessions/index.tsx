@@ -1,9 +1,10 @@
 import { ActionIcon, Button, Skeleton, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import IconSolarCheckSquareBroken from "~icons/solar/check-square-broken";
 import IconSolarCloseCircleBroken from "~icons/solar/close-circle-broken";
+import IconSolarSettingsBroken from "~icons/solar/settings-broken";
 
 import SessionCard from "~/components/sessions/SessionCard";
 import { db } from "~/db/index";
@@ -72,9 +73,10 @@ const SessionsPage = () => {
             {sessions ? `${sessions.length} sessions logged` : "Loading…"}
           </p>
         </div>
-        {sessions && sessions.length > 0 && (
-          <div className="flex items-center gap-2">
-            {selectionMode ? (
+        <div className="flex items-center gap-2">
+          {sessions &&
+            sessions.length > 0 &&
+            (selectionMode ? (
               <>
                 <Button
                   variant="filled"
@@ -103,9 +105,19 @@ const SessionsPage = () => {
               >
                 <IconSolarCheckSquareBroken className="text-xl" />
               </ActionIcon>
-            )}
-          </div>
-        )}
+            ))}
+          {!selectionMode && (
+            <ActionIcon
+              component={Link}
+              to="/settings"
+              variant="default"
+              size="lg"
+              aria-label="Settings"
+            >
+              <IconSolarSettingsBroken className="text-xl" />
+            </ActionIcon>
+          )}
+        </div>
       </header>
 
       <div className="flex flex-col gap-2">

@@ -1,13 +1,13 @@
 {
   "name": "gym-jam",
-  "version": "0.0.0",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "tsc -b && vp build",
     "dev": "vp dev",
     "lint": "vp lint .",
-    "prepare": "vp config",
+    "prepare": "vp config && git config core.hooksPath .githooks",
     "preview": "vp preview"
   },
   "dependencies": {

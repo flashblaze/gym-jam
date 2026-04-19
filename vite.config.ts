@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import babel from "@rolldown/plugin-babel";
@@ -7,6 +8,10 @@ import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import Icons from "unplugin-icons/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vite-plus";
+
+const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf-8")) as {
+  version: string;
+};
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -18,7 +23,7 @@ export default defineConfig({
     env: {
       builtin: true,
     },
-    ignorePatterns: ["dist"],
+    ignorePatterns: ["dist", "src/vite-env.d.ts"],
     overrides: [
       {
         files: ["**/*.{ts,tsx}"],
@@ -110,6 +115,9 @@ export default defineConfig({
             },
           ],
         },
+        globals: {
+          __APP_VERSION__: "readonly",
+        },
         env: {
           es2020: true,
           browser: true,
@@ -170,6 +178,9 @@ export default defineConfig({
       },
     }),
   ],
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   resolve: {
     alias: {
       "~": path.resolve(import.meta.dirname, "src"),
