@@ -140,25 +140,20 @@ const LogPage = () => {
     try {
       const today = logDate ?? todayIso();
 
-      // Single transaction: one round-trip instead of 3–4 separate ones.
-      const savedSessionId = await db.transaction("rw", db.sessions, async () => {
-        let sess = await db.sessions.where("date").equals(today).first();
+      let sess = await db.sessions.where("date").equals(today).first();
+      if (!sess) {
+        sess = { id: nanoid("s-"), date: today, name: "Session", exercises: [] };
+      }
 
-        if (!sess) {
-          const newId = nanoid("s-");
-          sess = { id: newId, date: today, name: "Session", exercises: [] };
-        }
+      const existing = sess.exercises.find((e) => e.exerciseId === exerciseId);
+      if (existing) {
+        existing.sets.push(...valid);
+      } else {
+        sess.exercises.push({ exerciseId, sets: valid });
+      }
 
-        const existing = sess.exercises.find((e) => e.exerciseId === exerciseId);
-        if (existing) {
-          existing.sets.push(...valid);
-        } else {
-          sess.exercises.push({ exerciseId, sets: valid });
-        }
-
-        await db.sessions.put(sess);
-        return sess.id;
-      });
+      await db.sessions.put(sess);
+      const savedSessionId = sess.id;
 
       notifications.show({
         title: "Session saved",
