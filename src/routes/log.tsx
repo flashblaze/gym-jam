@@ -147,7 +147,6 @@ const LogPage = () => {
         if (!sess) {
           const newId = nanoid("s-");
           sess = { id: newId, date: today, name: "Session", exercises: [] };
-          await db.sessions.add(sess);
         }
 
         const existing = sess.exercises.find((e) => e.exerciseId === exerciseId);
