@@ -1,97 +1,86 @@
-import { ActionIcon, UnstyledButton } from "@mantine/core";
+import { UnstyledButton } from "@mantine/core";
 import { useNavigate } from "@tanstack/react-router";
-import IconSolarTrashBinMinimalisticBroken from "~icons/solar/trash-bin-minimalistic-broken";
 
 import { cn } from "~/cn";
-import type { Session } from "~/db/index";
-import { formatDate, sessSetCount } from "~/lib/calc";
+import SelectionIndicator from "~/components/SelectionIndicator";
+import type { Exercise, Session } from "~/db/index";
+import { useLongPressSelect } from "~/hooks/use-long-press-select";
+import { formatVolume, pluralize, sessSetCount, sessVolume } from "~/lib/calc";
+import { formatSessionDate } from "~/lib/history";
+import { DELETED_EXERCISE_LABEL } from "~/lib/sets";
+import { DEFAULT_SESSION_NAME } from "~/lib/workout";
+
+const NAMES_SHOWN = 3;
 
 interface SessionCardProps {
   session: Session;
-  onDelete: () => void;
-  selectionMode?: boolean;
-  isSelected?: boolean;
-  onToggleSelect?: () => void;
+  exercises: Record<string, Exercise>;
+  selectionMode: boolean;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+  /** Long-press entry into selection mode. */
+  onLongPress: () => void;
 }
 
 const SessionCard = ({
   session,
-  onDelete,
-  selectionMode = false,
-  isSelected = false,
+  exercises,
+  selectionMode,
+  isSelected,
   onToggleSelect,
+  onLongPress,
 }: SessionCardProps) => {
   const navigate = useNavigate();
+  const longPress = useLongPressSelect(onLongPress);
+
+  const names = session.exercises.map(
+    (block) => exercises[block.exerciseId]?.name ?? DELETED_EXERCISE_LABEL,
+  );
+  const extra = names.length - NAMES_SHOWN;
+  const customName = session.name.trim() && session.name !== DEFAULT_SESSION_NAME;
 
   return (
     <UnstyledButton
+      {...longPress.handlers}
       onClick={() => {
+        if (longPress.consumeClick()) return;
         if (selectionMode) {
-          onToggleSelect?.();
+          onToggleSelect();
         } else {
-          void navigate({ to: "/sessions/$sessionId", params: { sessionId: session.id } });
+          void navigate({
+            to: "/workout/$date",
+            params: { date: session.date },
+            search: { session: session.id },
+          });
         }
       }}
+      aria-pressed={selectionMode ? isSelected : undefined}
       className={cn(
-        "flex w-full items-stretch overflow-hidden rounded-xl border transition-all duration-150",
+        "flex w-full select-none items-stretch overflow-hidden rounded-xl border transition-colors duration-150 [-webkit-touch-callout:none]",
         selectionMode && isSelected
-          ? "border-primary-500/40 bg-[#1c1c2e]"
-          : "border-white/8 bg-[#18182a]",
+          ? "border-primary-500/40 bg-surface-hover"
+          : "border-line bg-surface-raised hover:border-line-strong",
       )}
     >
-      {/* Selection indicator */}
-      {selectionMode && (
-        <div className="flex items-center pl-3 pr-2">
-          <span
-            className={cn(
-              "flex h-[22px] w-[22px] items-center justify-center rounded-full transition-all duration-150",
-              isSelected ? "bg-primary-500" : "border-2 border-[#333348]",
-            )}
-          >
-            {isSelected && (
-              <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                <path
-                  d="M1.5 4.5L4.5 7.5L9.5 1.5"
-                  stroke="#0f0f1c"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
+      {selectionMode && <SelectionIndicator selected={isSelected} />}
+
+      <article className="min-w-0 flex-1 px-4 py-3 text-left">
+        <header className="flex items-baseline justify-between gap-2">
+          <h3 className="text-sm font-semibold text-fg">{formatSessionDate(session.date)}</h3>
+          <span className="shrink-0 text-xs font-medium text-primary-500">
+            {formatVolume(sessVolume(session))}
           </span>
-        </div>
-      )}
-
-      {/* Card content */}
-      <div className="min-w-0 flex-1 px-4 py-3.5 text-left">
-        <div className="mb-1 flex items-baseline justify-between gap-2">
-          <span className="text-sm font-semibold text-[#d4d4e0]">{formatDate(session.date)}</span>
-          <span className="shrink-0 text-xs text-[#565670]">{session.exercises.length} ex</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-[#565670]">{session.name}</span>
-          <span className="text-[#333348]">·</span>
-          <span className="text-xs text-[#565670]">{sessSetCount(session)} sets</span>
-        </div>
-      </div>
-
-      {/* Delete button (normal mode only) */}
-      {!selectionMode && (
-        <div className="flex items-center pr-3">
-          <ActionIcon
-            variant="transparent"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            aria-label="Delete session"
-          >
-            <IconSolarTrashBinMinimalisticBroken className="text-red-400/60" />
-          </ActionIcon>
-        </div>
-      )}
+        </header>
+        {customName && <p className="mt-0.5 truncate text-xs text-fg-muted">{session.name}</p>}
+        <p className="mt-1 truncate text-sm text-fg-subtle">
+          {names.length === 0
+            ? "No exercises"
+            : names.slice(0, NAMES_SHOWN).join(", ") + (extra > 0 ? ` +${extra} more` : "")}
+        </p>
+        <p className="mt-1 text-xs text-fg-faint">
+          {pluralize(sessSetCount(session), "set")} · {pluralize(names.length, "exercise")}
+        </p>
+      </article>
     </UnstyledButton>
   );
 };

@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 import type { Session } from "~/db/index";
 
 export function sessVolume(sess: Session): number {
@@ -43,7 +45,16 @@ export function formatDate(iso: string): string {
 }
 
 export function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  return dayjs().format("YYYY-MM-DD");
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** A real calendar date in "YYYY-MM-DD" form that is not in the future. */
+export function isLoggableDate(raw: unknown): raw is string {
+  if (typeof raw !== "string" || !ISO_DATE.test(raw)) return false;
+  const d = dayjs(raw);
+  return d.isValid() && d.format("YYYY-MM-DD") === raw && !d.isAfter(dayjs(), "day");
 }
 
 export function formatDuration(seconds: number): string {
@@ -56,4 +67,8 @@ export function formatDuration(seconds: number): string {
 
 export function nanoid(prefix = ""): string {
   return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+export function pluralize(count: number, word: string): string {
+  return `${count} ${word}${count === 1 ? "" : "s"}`;
 }

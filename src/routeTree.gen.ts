@@ -9,17 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as LogRouteImport } from './routes/log'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SessionsIndexRouteImport } from './routes/sessions/index'
+import { Route as LogRouteImport } from './routes/log'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ExercisesIndexRouteImport } from './routes/exercises/index'
-import { Route as SessionsSessionIdRouteImport } from './routes/sessions/$sessionId'
 import { Route as ExercisesExerciseIdRouteImport } from './routes/exercises/$exerciseId'
+import { Route as SessionsIndexRouteImport } from './routes/sessions/index'
+import { Route as SessionsSessionIdRouteImport } from './routes/sessions/$sessionId'
+import { Route as WorkoutIndexRouteImport } from './routes/workout/index'
+import { Route as WorkoutDateRouteImport } from './routes/workout/$date'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LogRoute = LogRouteImport.update({
@@ -27,14 +29,9 @@ const LogRoute = LogRouteImport.update({
   path: '/log',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SessionsIndexRoute = SessionsIndexRouteImport.update({
-  id: '/sessions/',
-  path: '/sessions/',
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExercisesIndexRoute = ExercisesIndexRouteImport.update({
@@ -42,14 +39,29 @@ const ExercisesIndexRoute = ExercisesIndexRouteImport.update({
   path: '/exercises/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExercisesExerciseIdRoute = ExercisesExerciseIdRouteImport.update({
+  id: '/exercises/$exerciseId',
+  path: '/exercises/$exerciseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SessionsIndexRoute = SessionsIndexRouteImport.update({
+  id: '/sessions/',
+  path: '/sessions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SessionsSessionIdRoute = SessionsSessionIdRouteImport.update({
   id: '/sessions/$sessionId',
   path: '/sessions/$sessionId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ExercisesExerciseIdRoute = ExercisesExerciseIdRouteImport.update({
-  id: '/exercises/$exerciseId',
-  path: '/exercises/$exerciseId',
+const WorkoutIndexRoute = WorkoutIndexRouteImport.update({
+  id: '/workout/',
+  path: '/workout/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkoutDateRoute = WorkoutDateRouteImport.update({
+  id: '/workout/$date',
+  path: '/workout/$date',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -59,8 +71,10 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/exercises/$exerciseId': typeof ExercisesExerciseIdRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
+  '/workout/$date': typeof WorkoutDateRoute
   '/exercises/': typeof ExercisesIndexRoute
   '/sessions/': typeof SessionsIndexRoute
+  '/workout/': typeof WorkoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -68,8 +82,10 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/exercises/$exerciseId': typeof ExercisesExerciseIdRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
+  '/workout/$date': typeof WorkoutDateRoute
   '/exercises': typeof ExercisesIndexRoute
   '/sessions': typeof SessionsIndexRoute
+  '/workout': typeof WorkoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -78,8 +94,10 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/exercises/$exerciseId': typeof ExercisesExerciseIdRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
+  '/workout/$date': typeof WorkoutDateRoute
   '/exercises/': typeof ExercisesIndexRoute
   '/sessions/': typeof SessionsIndexRoute
+  '/workout/': typeof WorkoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -89,8 +107,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/exercises/$exerciseId'
     | '/sessions/$sessionId'
+    | '/workout/$date'
     | '/exercises/'
     | '/sessions/'
+    | '/workout/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -98,8 +118,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/exercises/$exerciseId'
     | '/sessions/$sessionId'
+    | '/workout/$date'
     | '/exercises'
     | '/sessions'
+    | '/workout'
   id:
     | '__root__'
     | '/'
@@ -107,8 +129,10 @@ export interface FileRouteTypes {
     | '/settings'
     | '/exercises/$exerciseId'
     | '/sessions/$sessionId'
+    | '/workout/$date'
     | '/exercises/'
     | '/sessions/'
+    | '/workout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,17 +141,19 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   ExercisesExerciseIdRoute: typeof ExercisesExerciseIdRoute
   SessionsSessionIdRoute: typeof SessionsSessionIdRoute
+  WorkoutDateRoute: typeof WorkoutDateRoute
   ExercisesIndexRoute: typeof ExercisesIndexRoute
   SessionsIndexRoute: typeof SessionsIndexRoute
+  WorkoutIndexRoute: typeof WorkoutIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/log': {
@@ -137,18 +163,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LogRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sessions/': {
-      id: '/sessions/'
-      path: '/sessions'
-      fullPath: '/sessions/'
-      preLoaderRoute: typeof SessionsIndexRouteImport
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/exercises/': {
@@ -158,6 +177,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExercisesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/exercises/$exerciseId': {
+      id: '/exercises/$exerciseId'
+      path: '/exercises/$exerciseId'
+      fullPath: '/exercises/$exerciseId'
+      preLoaderRoute: typeof ExercisesExerciseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sessions/': {
+      id: '/sessions/'
+      path: '/sessions'
+      fullPath: '/sessions/'
+      preLoaderRoute: typeof SessionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sessions/$sessionId': {
       id: '/sessions/$sessionId'
       path: '/sessions/$sessionId'
@@ -165,11 +198,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionsSessionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/exercises/$exerciseId': {
-      id: '/exercises/$exerciseId'
-      path: '/exercises/$exerciseId'
-      fullPath: '/exercises/$exerciseId'
-      preLoaderRoute: typeof ExercisesExerciseIdRouteImport
+    '/workout/': {
+      id: '/workout/'
+      path: '/workout'
+      fullPath: '/workout/'
+      preLoaderRoute: typeof WorkoutIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workout/$date': {
+      id: '/workout/$date'
+      path: '/workout/$date'
+      fullPath: '/workout/$date'
+      preLoaderRoute: typeof WorkoutDateRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -181,8 +221,10 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   ExercisesExerciseIdRoute: ExercisesExerciseIdRoute,
   SessionsSessionIdRoute: SessionsSessionIdRoute,
+  WorkoutDateRoute: WorkoutDateRoute,
   ExercisesIndexRoute: ExercisesIndexRoute,
   SessionsIndexRoute: SessionsIndexRoute,
+  WorkoutIndexRoute: WorkoutIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

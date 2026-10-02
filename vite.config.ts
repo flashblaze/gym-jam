@@ -15,6 +15,13 @@ const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), 
 
 // https://vite.dev/config/
 export default defineConfig({
+  test: {
+    // Vitest v4 compatibility: preserve mock call history.
+    // Remove after tests no longer rely on calls from setup or earlier tests.
+    // https://viteplus.dev/guide/vitest-v5#remove-unneeded-compatibility-settings
+    // https://vitest.dev/guide/migration/#clearmocks-is-enabled-by-default
+    clearMocks: false,
+  },
   lint: {
     plugins: ["oxc", "typescript", "unicorn", "react"],
     categories: {
@@ -123,6 +130,13 @@ export default defineConfig({
           browser: true,
         },
       },
+      {
+        // Route files must export `Route` beside their component; the router plugin handles HMR.
+        files: ["src/routes/**/*.tsx"],
+        rules: {
+          "react/only-export-components": "off",
+        },
+      },
     ],
     options: {
       typeAware: true,
@@ -145,6 +159,8 @@ export default defineConfig({
     tanstackRouter({
       routesDirectory: "./src/routes",
       generatedRouteTree: "./src/routeTree.gen.ts",
+      // Each route's component becomes its own chunk, so e.g. recharts loads only on exercise pages.
+      autoCodeSplitting: true,
     }),
     react(),
     tailwindcss(),

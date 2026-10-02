@@ -1,124 +1,158 @@
-import { ActionIcon, Button, Skeleton } from "@mantine/core";
+import { ActionIcon, Skeleton } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo } from "react";
 import IconSolarAltArrowLeftBroken from "~icons/solar/alt-arrow-left-broken";
 import IconSolarPenBroken from "~icons/solar/pen-broken";
 
+import EmptyState from "~/components/EmptyState";
 import EditExerciseDrawer from "~/components/exercises/EditExerciseDrawer";
 import ExerciseHistoryItem from "~/components/exercises/ExerciseHistoryItem";
-import WeightChart from "~/components/exercises/WeightChart";
+import ProgressChart from "~/components/exercises/ProgressChart";
+import { deleteExercises } from "~/db/delete-exercises";
 import { useCategories } from "~/hooks/use-categories";
-import { useExerciseHistory } from "~/hooks/use-exercise-history";
 import { useExercise } from "~/hooks/use-exercises";
-import { formatDuration } from "~/lib/calc";
+import { useSessions } from "~/hooks/use-sessions";
+import { formatDate, pluralize } from "~/lib/calc";
 import { TYPE_LABELS } from "~/lib/constants";
+import { METRICS_BY_TYPE, METRIC_INFO, bestOf, exerciseHistory } from "~/lib/progress";
 
 const ExerciseDetailPage = () => {
   const { exerciseId } = Route.useParams();
   const navigate = useNavigate();
   const exercise = useExercise(exerciseId);
-  const history = useExerciseHistory(exerciseId);
+  const sessions = useSessions();
   const categories = useCategories();
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
 
-  if (exercise === undefined || history === undefined || categories === undefined) {
+  const history = useMemo(
+    () => (exercise && sessions ? exerciseHistory(sessions, exercise) : undefined),
+    [exercise, sessions],
+  );
+
+  useEffect(() => {
+    if (exercise === null) void navigate({ to: "/exercises" });
+  }, [exercise, navigate]);
+
+  if (!exercise || history === undefined || categories === undefined) {
     return (
       <div className="px-4 py-5">
         <Skeleton height={28} width={120} mb={8} />
-        <Skeleton height={24} width={200} mb={4} />
+        <Skeleton height={24} width={200} mb={16} />
+        <Skeleton height={140} radius="xl" mb={12} />
+        <Skeleton height={200} radius="xl" />
       </div>
     );
   }
 
-  if (!exercise) {
-    void navigate({ to: "/exercises" });
-    return null;
-  }
+  const metrics = METRICS_BY_TYPE[exercise.type];
+  const categoryName = categories.find((c) => c.id === exercise.category)?.name;
 
-  const isTimed = exercise.type === "timed";
-
-  const topWeight = !isTimed && history.length ? Math.max(...history.map((h) => h.maxWeight)) : 0;
-  const topEntry = !isTimed ? history.find((h) => h.maxWeight === topWeight) : undefined;
-
-  const bestTime = isTimed && history.length ? Math.max(...history.map((h) => h.bestTime)) : 0;
-  const bestTimeEntry = isTimed ? history.find((h) => h.bestTime === bestTime) : undefined;
-
-  const chartData = isTimed
-    ? history.map((h) => ({ date: h.date, value: h.bestTime }))
-    : history.map((h) => ({ date: h.date, value: h.maxWeight }));
+  const handleDelete = () => {
+    modals.openConfirmModal({
+      title: "Delete exercise",
+      children: (
+        <p className="text-sm text-fg-muted">
+          Delete &ldquo;{exercise.name}&rdquo;?
+          {history.length > 0 &&
+            ` Its sets will also be removed from ${pluralize(history.length, "workout")}.`}{" "}
+          This cannot be undone.
+        </p>
+      ),
+      labels: { confirm: "Delete", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => {
+        closeEdit();
+        void deleteExercises([exercise.id])
+          .then(() => navigate({ to: "/exercises" }))
+          .catch((err: unknown) =>
+            notifications.show({
+              title: "Delete failed",
+              message: err instanceof Error ? err.message : "Could not delete the exercise.",
+              color: "red",
+            }),
+          );
+      },
+    });
+  };
 
   return (
     <div className="pb-6">
-      <div className="px-4 pt-4">
+      <header className="px-4 pt-4">
         <div className="flex items-center justify-between">
-          <Button
-            variant="default"
-            size="compact-sm"
-            leftSection={<IconSolarAltArrowLeftBroken />}
-            onClick={() => void navigate({ to: "/exercises" })}
+          <ActionIcon
+            component={Link}
+            to="/exercises"
+            size="lg"
+            variant="subtle"
+            color="gray"
+            aria-label="Back to exercises"
           >
-            Back
-          </Button>
-          <ActionIcon variant="default" size="sm" onClick={openEdit} aria-label="Edit exercise">
-            <IconSolarPenBroken />
+            <IconSolarAltArrowLeftBroken className="text-lg" />
+          </ActionIcon>
+          <ActionIcon
+            size="lg"
+            variant="subtle"
+            color="gray"
+            onClick={openEdit}
+            aria-label="Edit exercise"
+          >
+            <IconSolarPenBroken className="text-lg" />
           </ActionIcon>
         </div>
-        <h1 className="mt-4 text-2xl font-bold tracking-tight text-[#d4d4e0]">{exercise.name}</h1>
-        <p className="mt-0.5 text-xs capitalize text-[#565670]">{TYPE_LABELS[exercise.type]}</p>
-      </div>
+        <h1 className="mt-3 text-2xl font-bold tracking-tight text-fg">{exercise.name}</h1>
+        <p className="mt-0.5 text-xs text-fg-faint">
+          {[TYPE_LABELS[exercise.type], categoryName].filter(Boolean).join(" · ")}
+        </p>
+      </header>
 
       {history.length === 0 ? (
-        <p className="py-12 text-center text-sm text-[#565670]">No history yet</p>
+        <EmptyState message="Not logged yet. Add it to a workout to start tracking progress." />
       ) : (
         <>
-          <dl className="grid grid-cols-2 gap-2 px-4 py-3">
-            {isTimed ? (
-              <div className="rounded-xl border border-white/6 bg-[#18182a] px-4 py-3">
-                <dt className="text-[10px] font-medium uppercase tracking-widest text-[#565670]">
-                  Best time
-                </dt>
-                <dd className="mt-1 text-2xl font-bold text-primary-500">
-                  {formatDuration(bestTime)}
-                </dd>
-                {bestTimeEntry && (
-                  <p className="mt-0.5 text-[10px] text-[#565670]">{bestTimeEntry.date}</p>
-                )}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-white/6 bg-[#18182a] px-4 py-3">
-                <dt className="text-[10px] font-medium uppercase tracking-widest text-[#565670]">
-                  Top weight
-                </dt>
-                <dd className="mt-1 text-2xl font-bold text-primary-500">
-                  {topWeight}
-                  <span className="ml-1 text-sm font-normal text-[#565670]">kg</span>
-                </dd>
-                {topEntry && <p className="mt-0.5 text-[10px] text-[#565670]">{topEntry.date}</p>}
-              </div>
-            )}
-            <div className="rounded-xl border border-white/6 bg-[#18182a] px-4 py-3">
-              <dt className="text-[10px] font-medium uppercase tracking-widest text-[#565670]">
-                Sessions
-              </dt>
-              <dd className="mt-1 text-2xl font-bold text-primary-500">{history.length}</dd>
+          <dl className="grid grid-cols-2 gap-2 px-4 py-4">
+            {metrics.map((metric) => {
+              const record = bestOf(history, metric);
+              if (!record) return null;
+              return (
+                <div
+                  key={metric}
+                  className="rounded-xl border border-line bg-surface-raised px-4 py-3"
+                >
+                  <dt className="text-xs font-medium text-fg-faint">{METRIC_INFO[metric].label}</dt>
+                  <dd className="mt-1 text-xl font-bold text-primary-500">
+                    {METRIC_INFO[metric].format(record.value)}
+                  </dd>
+                  <dd className="mt-0.5 text-xs text-fg-faint">{formatDate(record.date)}</dd>
+                </div>
+              );
+            })}
+            <div className="rounded-xl border border-line bg-surface-raised px-4 py-3">
+              <dt className="text-xs font-medium text-fg-faint">Workouts</dt>
+              <dd className="mt-1 text-xl font-bold text-primary-500">{history.length}</dd>
+              <dd className="mt-0.5 text-xs text-fg-faint">since {formatDate(history[0].date)}</dd>
             </div>
           </dl>
 
-          <WeightChart
-            data={chartData}
-            label={isTimed ? "Best duration (s)" : "Top set weight (kg)"}
-          />
+          <ProgressChart history={history} metrics={metrics} />
 
-          <div className="px-4">
-            <p className="mb-2 mt-2 text-[10px] font-medium uppercase tracking-widest text-[#565670]">
+          <section aria-labelledby="history-heading" className="px-4">
+            <h2
+              id="history-heading"
+              className="mb-2 text-xs font-medium uppercase tracking-widest text-fg-faint"
+            >
               History
-            </p>
-            <div className="flex flex-col gap-1.5">
-              {[...history].reverse().map((entry, i) => (
-                <ExerciseHistoryItem key={i} entry={entry} />
+            </h2>
+            <ul className="flex flex-col gap-1.5">
+              {[...history].reverse().map((entry) => (
+                <li key={entry.sessionId}>
+                  <ExerciseHistoryItem entry={entry} headline={metrics[0]} />
+                </li>
               ))}
-            </div>
-          </div>
+            </ul>
+          </section>
         </>
       )}
 
@@ -127,6 +161,7 @@ const ExerciseDetailPage = () => {
         onClose={closeEdit}
         exercise={exercise}
         categories={categories}
+        onDelete={handleDelete}
       />
     </div>
   );
