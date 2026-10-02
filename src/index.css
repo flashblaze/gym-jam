@@ -24,8 +24,38 @@
   --color-surface-raised: var(--mantine-color-dark-6);
   --color-surface-hover: var(--mantine-color-dark-5);
 
-  --color-line: rgb(255 255 255 / 0.08);
+  --color-line: rgb(255 255 255 / 0.1);
   --color-line-strong: var(--mantine-color-dark-4);
+
+  --color-success: var(--mantine-color-primary-5);
+  --color-danger: var(--mantine-color-red-5);
+}
+
+@theme {
+  --font-sans: "Barlow", sans-serif;
+  /* Scoreboard numerals and headings. */
+  --font-display: "Barlow Condensed", sans-serif;
+
+  --animate-pop: pop 180ms ease-out;
+  --animate-flash: flash 600ms ease-out 2;
+
+  @keyframes pop {
+    0% {
+      transform: scale(0.82);
+    }
+    60% {
+      transform: scale(1.08);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes flash {
+    50% {
+      filter: brightness(1.35);
+    }
+  }
 }
 
 *,
@@ -51,4 +81,5 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--mantine-color-dark-7);
+  font-weight: 500;
 }

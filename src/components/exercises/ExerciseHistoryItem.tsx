@@ -23,25 +23,29 @@ const ExerciseHistoryItem = ({ entry, headline }: ExerciseHistoryItemProps) => {
           search: { session: entry.sessionId },
         })
       }
-      className="w-full rounded-xl border border-line bg-surface-raised px-4 py-3 transition-colors hover:border-line-strong hover:bg-surface-hover"
+      className="w-full border-b border-line py-3 transition-colors hover:bg-surface-raised"
     >
       <span className="flex items-center justify-between gap-2">
-        <span className="text-sm font-semibold text-fg">{formatSessionDate(entry.date)}</span>
+        <span className="font-display text-lg leading-tight font-bold uppercase text-fg">
+          {formatSessionDate(entry.date)}
+        </span>
         <span className="flex items-center gap-2">
           {entry.isPr && (
-            <Badge size="sm" variant="light">
+            <Badge size="sm" variant="filled">
               PR
             </Badge>
           )}
           {value !== undefined && (
-            <span className="text-xs font-medium text-primary-500">
+            <span className="font-display text-lg font-bold tabular-nums text-primary-500">
               {METRIC_INFO[headline].format(value)}
             </span>
           )}
           <IconSolarAltArrowRightBroken className="text-xs text-fg-faint" />
         </span>
       </span>
-      <span className="mt-1 block font-mono text-xs text-fg-subtle">{entry.sets.join(" · ")}</span>
+      <span className="mt-0.5 block font-display text-base tabular-nums text-fg-muted">
+        {entry.sets.join(" · ")}
+      </span>
     </UnstyledButton>
   );
 };

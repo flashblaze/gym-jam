@@ -34,9 +34,11 @@ const ExerciseOption = ({ exercise, categoryName, onPick }: ExerciseOptionProps)
       onClick={() => onPick(exercise.id)}
       className="flex min-h-12 w-full items-center justify-between gap-3 border-b border-line px-1 py-3 hover:bg-surface-raised"
     >
-      <span className="text-sm text-fg">{exercise.name}</span>
+      <span className="font-display text-lg leading-tight font-bold uppercase text-fg">
+        {exercise.name}
+      </span>
       {categoryName && (
-        <span className="shrink-0 text-xs uppercase tracking-wider text-fg-faint">
+        <span className="shrink-0 text-xs font-bold uppercase tracking-[0.1em] text-fg-faint">
           {categoryName}
         </span>
       )}
@@ -55,7 +57,9 @@ const OptionGroup = ({ label, exercises, categoryNames, onPick }: OptionGroupPro
   if (exercises.length === 0) return null;
   return (
     <section className="mb-4">
-      <h3 className="mb-1 text-xs font-medium uppercase tracking-widest text-fg-faint">{label}</h3>
+      <h3 className="border-b-2 border-fg pb-1 font-display text-base font-bold uppercase tracking-[0.06em] text-primary-500">
+        {label}
+      </h3>
       <ul>
         {exercises.map((ex) => (
           <ExerciseOption
@@ -107,14 +111,7 @@ const ExercisePickerDrawer = ({
   const hasExactMatch = exercises.some((ex) => ex.name.toLowerCase() === q);
 
   return (
-    <Drawer
-      opened={opened}
-      onClose={handleClose}
-      position="bottom"
-      size="85%"
-      title={title}
-      styles={{ title: { fontWeight: 700, fontSize: 16 } }}
-    >
+    <Drawer opened={opened} onClose={handleClose} position="bottom" size="85%" title={title}>
       <TextInput
         placeholder="Search exercises"
         aria-label="Search exercises"
@@ -138,7 +135,9 @@ const ExercisePickerDrawer = ({
             ))}
           </ul>
           {matches.length === 0 && (
-            <p className="py-4 text-center text-sm text-fg-faint">No matching exercises</p>
+            <p className="py-4 text-center text-sm font-semibold uppercase tracking-[0.08em] text-fg-faint">
+              No matching exercises
+            </p>
           )}
           {!hasExactMatch && (
             <Button

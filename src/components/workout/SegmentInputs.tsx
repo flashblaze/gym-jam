@@ -6,17 +6,24 @@ import { needsWeight } from "~/lib/sets";
 interface SegmentInputsProps {
   segment: Segment;
   type: Exercise["type"] | undefined;
+  /** Done sets drop the input chrome so the numbers read like a scoreboard. */
+  done: boolean;
   hint: Segment | undefined;
   onChange: (updated: Segment) => void;
 }
 
-const INPUT_CLASSNAMES = { input: "text-center font-mono" };
+const INPUT_CLASSNAMES = {
+  input: "px-0 text-center font-display text-2xl font-bold tabular-nums",
+};
+const SEPARATOR = "font-display text-lg text-fg-faint";
 
 function parseInput(value: string | number): number | null {
   return value === "" ? null : Number(value);
 }
 
-const SegmentInputs = ({ segment, type, hint, onChange }: SegmentInputsProps) => {
+const SegmentInputs = ({ segment, type, done, hint, onChange }: SegmentInputsProps) => {
+  const variant = done ? "unstyled" : "default";
+
   if (type === "timed") {
     const total = segment.r ?? 0;
     const minutes = Math.floor(total / 60);
@@ -27,6 +34,7 @@ const SegmentInputs = ({ segment, type, hint, onChange }: SegmentInputsProps) =>
       <span className="flex items-center gap-1">
         <NumberInput
           size="md"
+          variant={variant}
           hideControls
           inputMode="numeric"
           allowDecimal={false}
@@ -38,9 +46,10 @@ const SegmentInputs = ({ segment, type, hint, onChange }: SegmentInputsProps) =>
           className="w-14"
           classNames={INPUT_CLASSNAMES}
         />
-        <span className="text-sm text-fg-faint">:</span>
+        <span className={SEPARATOR}>:</span>
         <NumberInput
           size="md"
+          variant={variant}
           hideControls
           inputMode="numeric"
           allowDecimal={false}
@@ -63,6 +72,7 @@ const SegmentInputs = ({ segment, type, hint, onChange }: SegmentInputsProps) =>
         <>
           <NumberInput
             size="md"
+            variant={variant}
             hideControls
             inputMode="decimal"
             allowNegative={false}
@@ -73,11 +83,12 @@ const SegmentInputs = ({ segment, type, hint, onChange }: SegmentInputsProps) =>
             className="w-[4.5rem]"
             classNames={INPUT_CLASSNAMES}
           />
-          <span className="text-sm text-fg-faint">×</span>
+          <span className={SEPARATOR}>×</span>
         </>
       )}
       <NumberInput
         size="md"
+        variant={variant}
         hideControls
         inputMode="numeric"
         allowDecimal={false}

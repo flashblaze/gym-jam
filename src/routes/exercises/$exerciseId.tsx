@@ -11,6 +11,8 @@ import EmptyState from "~/components/EmptyState";
 import EditExerciseDrawer from "~/components/exercises/EditExerciseDrawer";
 import ExerciseHistoryItem from "~/components/exercises/ExerciseHistoryItem";
 import ProgressChart from "~/components/exercises/ProgressChart";
+import SectionHeading from "~/components/SectionHeading";
+import StatTile from "~/components/StatTile";
 import { deleteExercises } from "~/db/delete-exercises";
 import { useCategories } from "~/hooks/use-categories";
 import { useExercise } from "~/hooks/use-exercises";
@@ -41,8 +43,8 @@ const ExerciseDetailPage = () => {
       <div className="px-4 py-5">
         <Skeleton height={28} width={120} mb={8} />
         <Skeleton height={24} width={200} mb={16} />
-        <Skeleton height={140} radius="xl" mb={12} />
-        <Skeleton height={200} radius="xl" />
+        <Skeleton height={140} mb={12} />
+        <Skeleton height={200} />
       </div>
     );
   }
@@ -102,8 +104,10 @@ const ExerciseDetailPage = () => {
             <IconSolarPenBroken className="text-lg" />
           </ActionIcon>
         </div>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight text-fg">{exercise.name}</h1>
-        <p className="mt-0.5 text-xs text-fg-faint">
+        <h1 className="mt-3 font-display text-[40px] leading-[0.9] font-extrabold uppercase text-fg">
+          {exercise.name}
+        </h1>
+        <p className="mt-2 text-xs font-bold uppercase tracking-[0.16em] text-fg-subtle">
           {[TYPE_LABELS[exercise.type], categoryName].filter(Boolean).join(" · ")}
         </p>
       </header>
@@ -112,40 +116,34 @@ const ExerciseDetailPage = () => {
         <EmptyState message="Not logged yet. Add it to a workout to start tracking progress." />
       ) : (
         <>
-          <dl className="grid grid-cols-2 gap-2 px-4 py-4">
-            {metrics.map((metric) => {
+          <dl className="mx-4 my-4 grid grid-cols-2 gap-px border border-line bg-line">
+            {metrics.map((metric, i) => {
               const record = bestOf(history, metric);
               if (!record) return null;
               return (
-                <div
+                <StatTile
                   key={metric}
-                  className="rounded-xl border border-line bg-surface-raised px-4 py-3"
-                >
-                  <dt className="text-xs font-medium text-fg-faint">{METRIC_INFO[metric].label}</dt>
-                  <dd className="mt-1 text-xl font-bold text-primary-500">
-                    {METRIC_INFO[metric].format(record.value)}
-                  </dd>
-                  <dd className="mt-0.5 text-xs text-fg-faint">{formatDate(record.date)}</dd>
-                </div>
+                  label={METRIC_INFO[metric].label}
+                  value={METRIC_INFO[metric].format(record.value)}
+                  caption={formatDate(record.date)}
+                  accent={i === 0}
+                />
               );
             })}
-            <div className="rounded-xl border border-line bg-surface-raised px-4 py-3">
-              <dt className="text-xs font-medium text-fg-faint">Workouts</dt>
-              <dd className="mt-1 text-xl font-bold text-primary-500">{history.length}</dd>
-              <dd className="mt-0.5 text-xs text-fg-faint">since {formatDate(history[0].date)}</dd>
-            </div>
+            <StatTile
+              label="Workouts"
+              value={history.length}
+              caption={`since ${formatDate(history[0].date)}`}
+            />
           </dl>
 
           <ProgressChart history={history} metrics={metrics} />
 
           <section aria-labelledby="history-heading" className="px-4">
-            <h2
-              id="history-heading"
-              className="mb-2 text-xs font-medium uppercase tracking-widest text-fg-faint"
-            >
+            <SectionHeading id="history-heading" className="border-b-2 border-fg pb-1 text-fg">
               History
-            </h2>
-            <ul className="flex flex-col gap-1.5">
+            </SectionHeading>
+            <ul>
               {[...history].reverse().map((entry) => (
                 <li key={entry.sessionId}>
                   <ExerciseHistoryItem entry={entry} headline={metrics[0]} />

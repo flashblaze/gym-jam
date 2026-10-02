@@ -109,11 +109,14 @@ notifications.show({
   - Text: `text-fg`, `text-fg-muted`, `text-fg-subtle`, `text-fg-faint`
   - Surfaces: `bg-surface` (page), `bg-surface-raised` (cards), `bg-surface-hover` (hover/selected)
   - Borders: `border-line`, `border-line-strong`
-  - Accent: `primary-50`…`primary-900` (amber; also Mantine's `primaryColor`)
+  - Accent: `primary-50`…`primary-900` (electric lime; also Mantine's `primaryColor`). Status: `text-success`, `text-danger`
+  - `src/theme.test.ts` checks WCAG contrast of every text/surface pair; keep it passing when changing the palette.
+- **Visual language ("Scoreboard")**: dark only, hard 2px corners, hairline `border-line` rules instead of cards, uppercase letter-spaced labels. Headings and every number use `font-display` (Barlow Condensed) with `tabular-nums`; body text is Barlow. Animations (`animate-pop`, `animate-flash`) are always prefixed `motion-safe:`.
 - **Domain helpers**: Use `src/lib/sets.ts` for set validation (`isSegmentComplete`, `isSetComplete`), formatting (`formatSet`, `formatSegmentValue`), and building sets (`appendSet`, `appendDrop`, `appendSuperset`) instead of re-implementing them in components.
-- **Shared UI**: Use `EmptyState` (`src/components/EmptyState.tsx`) for empty lists/pages, `useSelection` + `useLongPressSelect` for multi-select lists, and `haptic()` from `src/lib/haptics.ts` for vibration feedback.
+- **Shared UI**: Use `PageHeader`, `SectionHeading` and `StatTile` (in a `grid … gap-px border border-line bg-line` `<dl>`) for page chrome, `selectableRowClass` + `SelectionIndicator` for tappable list rows, `EmptyState` (`src/components/EmptyState.tsx`) for empty lists/pages, `useSelection` + `useLongPressSelect` for multi-select lists, and `haptic()` from `src/lib/haptics.ts` for vibration feedback.
 - **Preferences**: Per-device settings go through `usePreferences()` (`src/hooks/use-preferences.ts`), which validates stored values on read. Add new fields there with a default.
 - **Workout logging**: `/workout/$date` is the only place sessions are created or edited. Only sets marked done are written to IndexedDB (`toSession` in `src/lib/workout.ts`); unfinished rows live in a per-date localStorage draft. Delete sessions through `deleteSessions` (`src/db/delete-sessions.ts`) so stale drafts are cleared too.
+- **App icons**: Edit `public/favicon.svg`, then run `vp run generate-pwa-assets` (config in `pwa-assets.config.ts`) to regenerate the PWA PNGs.
 - **Icons**: Always use Iconify via `unplugin-icons` — **never write inline SVGs**. Installed icon packs: `@iconify-json/solar`, `@iconify-json/tabler`. Import icons as React components: `import IconSolarEdit from "~icons/solar/pen-2-broken"`. Prefer `solar/*-broken` style for a consistent stroke look. Use `tabler/*` when solar lacks the right icon. Size icons with Tailwind text classes (`text-sm`, `text-base`, `text-lg`).
 - **`cn()` utility**: Use `cn()` from `~/cn` (clsx + tailwind-merge) for conditional class merging.
 

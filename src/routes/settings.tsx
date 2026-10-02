@@ -6,6 +6,9 @@ import { useRef, useState } from "react";
 import IconSolarDownload from "~icons/solar/download-minimalistic-broken";
 import IconSolarUpload from "~icons/solar/upload-minimalistic-broken";
 
+import PageHeader from "~/components/PageHeader";
+import SectionHeading from "~/components/SectionHeading";
+import StatTile from "~/components/StatTile";
 import { db } from "~/db/index";
 import { REST_PRESETS, usePreferences } from "~/hooks/use-preferences";
 import { formatDuration, pluralize } from "~/lib/calc";
@@ -35,20 +38,10 @@ interface ImportSummaryProps {
 const ImportSummary = ({ archive, currentSessions, currentExercises }: ImportSummaryProps) => (
   <div className="flex flex-col gap-3 text-sm text-fg-muted">
     <p>This archive contains:</p>
-    <dl className="grid grid-cols-3 gap-2 text-center">
-      {[
-        ["Workouts", archive.sessions.length],
-        ["Exercises", archive.exercises.length],
-        ["Categories", archive.categories.length],
-      ].map(([label, value]) => (
-        <div
-          key={label}
-          className="flex flex-col-reverse rounded-lg border border-line bg-surface-raised px-2 py-2"
-        >
-          <dt className="text-xs text-fg-faint">{label}</dt>
-          <dd className="text-lg font-bold text-fg">{value}</dd>
-        </div>
-      ))}
+    <dl className="grid grid-cols-3 gap-px border border-line bg-line">
+      <StatTile label="Workouts" value={archive.sessions.length} />
+      <StatTile label="Exercises" value={archive.exercises.length} />
+      <StatTile label="Categories" value={archive.categories.length} />
     </dl>
     <p>
       It will <strong className="text-fg">replace</strong> your current{" "}
@@ -136,16 +129,14 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="px-4 pb-6">
-      <header className="pt-6 pb-4">
-        <h1 className="text-3xl font-bold tracking-tight text-fg">Settings</h1>
-      </header>
+    <div className="pb-6">
+      <PageHeader title="Settings" />
 
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-8 px-4 pt-2">
         <section aria-labelledby="workout-settings">
-          <h2 id="workout-settings" className="mb-3 text-lg font-semibold tracking-tight text-fg">
+          <SectionHeading id="workout-settings" className="mb-3 border-b-2 border-fg pb-1 text-fg">
             Workout
-          </h2>
+          </SectionHeading>
           <div className="flex flex-col gap-4">
             <Switch
               label="Rest timer"
@@ -170,9 +161,9 @@ const SettingsPage = () => {
         </section>
 
         <section aria-labelledby="data-settings">
-          <h2 id="data-settings" className="mb-1 text-lg font-semibold tracking-tight text-fg">
+          <SectionHeading id="data-settings" className="mb-1 border-b-2 border-fg pb-1 text-fg">
             Data
-          </h2>
+          </SectionHeading>
           <p className="mb-4 text-sm text-fg-faint">
             Your data lives only on this device. Export a ZIP of CSV files to back it up or move it;
             importing one replaces everything here.
@@ -207,9 +198,9 @@ const SettingsPage = () => {
         </section>
 
         <section aria-labelledby="about-settings">
-          <h2 id="about-settings" className="mb-1 text-lg font-semibold tracking-tight text-fg">
+          <SectionHeading id="about-settings" className="mb-1 border-b-2 border-fg pb-1 text-fg">
             About
-          </h2>
+          </SectionHeading>
           <p className="text-sm text-fg-faint">Gym Jam · version {__APP_VERSION__}</p>
         </section>
       </div>

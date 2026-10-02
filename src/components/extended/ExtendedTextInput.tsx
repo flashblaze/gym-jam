@@ -1,9 +1,9 @@
 import { TextInput } from "@mantine/core";
 
+import { INPUT_CLASSNAMES } from "./input-classnames";
+
 const ExtendedTextInput = TextInput.extend({
-  classNames: {
-    input: "rounded-lg shadow-sm",
-  },
+  classNames: INPUT_CLASSNAMES,
 });
 
 export default ExtendedTextInput;

@@ -2,6 +2,7 @@ import { LineChart } from "@mantine/charts";
 import { SegmentedControl } from "@mantine/core";
 import { useState } from "react";
 
+import SectionHeading from "~/components/SectionHeading";
 import { formatDate } from "~/lib/calc";
 import { METRIC_INFO, type MetricKey, type SessionPerformance } from "~/lib/progress";
 
@@ -21,12 +22,9 @@ const ProgressChart = ({ history, metrics }: ProgressChartProps) => {
 
   return (
     <section aria-labelledby="progress-heading" className="px-4 pt-2 pb-4">
-      <h2
-        id="progress-heading"
-        className="mb-2 text-xs font-medium uppercase tracking-widest text-fg-faint"
-      >
+      <SectionHeading id="progress-heading" className="mb-3 border-b-2 border-fg pb-1 text-fg">
         Progress
-      </h2>
+      </SectionHeading>
       {metrics.length > 1 && (
         <SegmentedControl
           fullWidth
@@ -38,7 +36,7 @@ const ProgressChart = ({ history, metrics }: ProgressChartProps) => {
         />
       )}
       {data.length < 2 ? (
-        <p className="rounded-xl border border-dashed border-line py-8 text-center text-sm text-fg-faint">
+        <p className="border border-dashed border-line-strong py-8 text-center text-sm font-semibold uppercase tracking-[0.08em] text-fg-faint">
           Log this exercise in two workouts to see a trend.
         </p>
       ) : (

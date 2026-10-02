@@ -145,14 +145,7 @@ interface ExerciseFormDrawerProps extends ExerciseFormProps {
 }
 
 const ExerciseFormDrawer = ({ opened, title, onClose, ...formProps }: ExerciseFormDrawerProps) => (
-  <Drawer
-    opened={opened}
-    onClose={onClose}
-    position="bottom"
-    size="auto"
-    title={title}
-    styles={{ title: { fontWeight: 700, fontSize: 16 } }}
-  >
+  <Drawer opened={opened} onClose={onClose} position="bottom" size="auto" title={title}>
     <ExerciseForm {...formProps} />
   </Drawer>
 );

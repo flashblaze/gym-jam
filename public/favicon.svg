@@ -1,25 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
   <title>Gym Jam</title>
-  <defs>
-    <linearGradient id="gj-bg" x1="64" x2="448" y1="96" y2="416" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0f0f1c"/>
-      <stop offset="1" stop-color="#18182a"/>
-    </linearGradient>
-    <linearGradient id="gj-metal" x1="126" x2="386" y1="196" y2="316" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#fde68a"/>
-      <stop offset="0.45" stop-color="#fbbf24"/>
-      <stop offset="1" stop-color="#d97706"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" fill="url(#gj-bg)" rx="112"/>
-  <!-- Subtle ring: training / rhythm -->
-  <circle cx="256" cy="256" r="168" stroke="#333348" stroke-opacity="0.55" stroke-width="3"/>
-  <!-- Dumbbell (fits maskable safe circle) -->
-  <g>
-    <rect width="56" height="120" x="126" y="196" fill="url(#gj-metal)" rx="14"/>
-    <rect width="56" height="120" x="330" y="196" fill="url(#gj-metal)" rx="14"/>
-    <rect width="148" height="48" x="182" y="232" fill="url(#gj-metal)" rx="12"/>
+  <rect width="512" height="512" fill="#0a0a0a"/>
+  <!-- Flat lime dumbbell; stays inside the 80% maskable safe zone. -->
+  <g fill="#c6f432">
+    <rect x="112" y="176" width="44" height="160"/>
+    <rect x="164" y="204" width="36" height="104"/>
+    <rect x="200" y="238" width="112" height="36"/>
+    <rect x="312" y="204" width="36" height="104"/>
+    <rect x="356" y="176" width="44" height="160"/>
   </g>
-  <!-- Highlight on bar -->
-  <rect width="148" height="10" x="182" y="238" fill="#fffbeb" fill-opacity="0.22" rx="4"/>
 </svg>

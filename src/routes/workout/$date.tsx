@@ -100,16 +100,14 @@ const WorkoutEditor = ({
 
   const persisted = toSession(draft);
   const doneSets = persisted.exercises.reduce((n, block) => n + block.sets.length, 0);
-  const summary =
+  const stats =
     doneSets === 0
-      ? draft.blocks.length > 0
-        ? "Tick ✓ on a set to save it"
-        : "Nothing logged yet"
-      : [
-          pluralize(persisted.exercises.length, "exercise"),
-          pluralize(doneSets, "set"),
-          formatVolume(sessVolume(persisted)),
-        ].join(" · ");
+      ? null
+      : {
+          sets: doneSets,
+          volume: formatVolume(sessVolume(persisted)),
+        };
+  const emptyHint = draft.blocks.length > 0 ? "Tick ✓ on a set to save it" : "Nothing logged yet";
 
   // Runs after the persistence hook has stored the trimmed draft for this render.
   useEffect(() => {
@@ -277,7 +275,7 @@ const WorkoutEditor = ({
     );
   } else {
     content = (
-      <ol className="flex flex-col gap-3 px-4">
+      <ol className="flex flex-col gap-6 px-4 pt-5">
         {draft.blocks.map((block) => (
           <ExerciseBlock
             key={block.key}
@@ -322,8 +320,9 @@ const WorkoutEditor = ({
       <WorkoutHeader
         date={date}
         name={draft.name}
-        summary={summary}
-        saveStatus={doneSets > 0 || status !== "saved" ? status : null}
+        stats={stats}
+        emptyHint={emptyHint}
+        saveStatus={status}
         canDelete={draft.blocks.length > 0}
         onNameChange={(name) => setDraft((d) => ({ ...d, name }))}
         onDateChange={(next) => void navigate({ to: "/workout/$date", params: { date: next } })}
@@ -336,7 +335,7 @@ const WorkoutEditor = ({
         <Button
           fullWidth
           size="md"
-          variant={draft.blocks.length === 0 ? "filled" : "light"}
+          variant={draft.blocks.length === 0 ? "filled" : "default"}
           leftSection={<IconSolarAddCircleBroken />}
           onClick={() => setPicker({ mode: "add" })}
         >
@@ -393,8 +392,8 @@ const WorkoutSkeleton = () => (
   <div className="px-4 py-5">
     <Skeleton height={32} width={160} mb={8} />
     <Skeleton height={20} width={120} mb={16} />
-    <Skeleton height={160} radius="xl" mb={12} />
-    <Skeleton height={160} radius="xl" />
+    <Skeleton height={160} mb={12} />
+    <Skeleton height={160} />
   </div>
 );
 

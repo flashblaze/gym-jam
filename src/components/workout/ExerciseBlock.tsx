@@ -39,21 +39,23 @@ const ExerciseBlock = ({
   const doneCount = block.sets.filter((set) => set.done).length;
 
   return (
-    <li className="rounded-xl border border-line bg-surface-raised px-3 pt-3 pb-2">
-      <header className="mb-2 flex items-start gap-2 px-1">
+    <li className="border-t-2 border-fg pt-2 pb-1">
+      <header className="mb-1 flex items-start gap-2">
         <div className="min-w-0 flex-1">
           {exercise ? (
             <Link
               to="/exercises/$exerciseId"
               params={{ exerciseId: exercise.id }}
-              className="text-base font-semibold text-fg no-underline hover:underline"
+              className="font-display text-[22px] leading-tight font-bold uppercase tracking-[0.02em] text-fg no-underline hover:text-primary-500"
             >
               {exercise.name}
             </Link>
           ) : (
-            <span className="text-base font-semibold text-fg">{DELETED_EXERCISE_LABEL}</span>
+            <span className="font-display text-[22px] leading-tight font-bold uppercase text-fg-subtle">
+              {DELETED_EXERCISE_LABEL}
+            </span>
           )}
-          <p className="mt-0.5 truncate text-xs text-fg-faint">
+          <p className="mt-0.5 truncate text-xs font-semibold uppercase tracking-[0.06em] text-fg-faint">
             {previous
               ? `Last · ${formatDate(previous.date)}: ${previous.sets
                   .map((set) => formatSet(set, block.exerciseId, exercises))
@@ -61,7 +63,7 @@ const ExerciseBlock = ({
               : "First time logging this exercise"}
           </p>
         </div>
-        <span className="pt-1 text-xs text-fg-faint">
+        <span className="pt-1 font-display text-lg font-bold tabular-nums text-primary-500">
           {doneCount}/{block.sets.length}
         </span>
         <Menu position="bottom-end">
@@ -78,7 +80,7 @@ const ExerciseBlock = ({
         </Menu>
       </header>
 
-      <ol className="flex flex-col gap-1">
+      <ol>
         {block.sets.map((set, index) => (
           <WorkoutSetRow
             key={set.key}

@@ -1,5 +1,6 @@
 export { default as ExtendedActionIcon } from "./ExtendedActionIcon";
 export { default as ExtendedButton } from "./ExtendedButton";
+export { default as ExtendedDrawer } from "./ExtendedDrawer";
 export { default as ExtendedMenu } from "./ExtendedMenu";
 export { default as ExtendedModal } from "./ExtendedModal";
 export { default as ExtendedNotification } from "./ExtendedNotification";

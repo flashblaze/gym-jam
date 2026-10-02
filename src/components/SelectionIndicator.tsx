@@ -8,14 +8,14 @@ interface SelectionIndicatorProps {
 
 const SelectionIndicator = ({ selected }: SelectionIndicatorProps) => {
   return (
-    <span className="flex items-center pl-3 pr-2">
+    <span className="flex items-center pr-3">
       <span
         className={cn(
-          "flex h-[22px] w-[22px] items-center justify-center rounded-full transition-all duration-150",
+          "flex h-6 w-6 items-center justify-center transition-colors duration-150",
           selected ? "bg-primary-500" : "border-2 border-line-strong",
         )}
       >
-        {selected && <IconTablerCheck className="text-sm text-surface" />}
+        {selected && <IconTablerCheck className="text-base text-surface" />}
       </span>
     </span>
   );

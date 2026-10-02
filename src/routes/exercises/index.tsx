@@ -12,6 +12,8 @@ import IconSolarMagniferBroken from "~icons/solar/magnifer-broken";
 import EmptyState from "~/components/EmptyState";
 import CreateExerciseDrawer from "~/components/exercises/CreateExerciseDrawer";
 import ExerciseListItem from "~/components/exercises/ExerciseListItem";
+import PageHeader from "~/components/PageHeader";
+import SectionHeading from "~/components/SectionHeading";
 import { deleteExercises } from "~/db/delete-exercises";
 import type { Exercise } from "~/db/index";
 import { useCategories } from "~/hooks/use-categories";
@@ -85,10 +87,10 @@ const ExercisesPage = () => {
     return (
       <div className="flex flex-col gap-2 px-4 py-6">
         <Skeleton height={36} width={160} mb={8} />
-        <Skeleton height={42} radius="md" mb={8} />
-        <Skeleton height={56} radius="xl" />
-        <Skeleton height={56} radius="xl" />
-        <Skeleton height={56} radius="xl" />
+        <Skeleton height={42} mb={8} />
+        <Skeleton height={56} />
+        <Skeleton height={56} />
+        <Skeleton height={56} />
       </div>
     );
   }
@@ -148,9 +150,7 @@ const ExercisesPage = () => {
   } else if (categoryFilter === ALL_CATEGORIES && !q) {
     content = usedCategories.map((cat) => (
       <section key={cat.id} className="mb-5">
-        <h2 className="mb-2 text-xs font-medium uppercase tracking-widest text-fg-faint">
-          {cat.name}
-        </h2>
+        <SectionHeading className="border-b-2 border-fg pb-1 text-fg">{cat.name}</SectionHeading>
         {renderItems(visible.filter((ex) => ex.category === cat.id).sort(byName), false)}
       </section>
     ));
@@ -160,51 +160,56 @@ const ExercisesPage = () => {
 
   return (
     <div className="pb-6">
-      <header className="flex items-center justify-between px-4 pt-6 pb-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">Exercises</h1>
-          <p className="mt-1 text-xs text-fg-faint">{pluralize(exercises.length, "exercise")}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {selectionMode ? (
-            <>
-              <Button
-                variant="filled"
-                color="red"
-                size="xs"
-                disabled={selectedIds.size === 0}
-                onClick={handleBulkDelete}
-              >
-                Delete ({selectedIds.size})
-              </Button>
-              <ActionIcon variant="default" size="lg" onClick={exit} aria-label="Cancel selection">
-                <IconSolarCloseCircleBroken className="text-xl" />
-              </ActionIcon>
-            </>
-          ) : (
-            <>
-              {exercises.length > 0 && (
+      <PageHeader
+        title="Exercises"
+        subtitle={pluralize(exercises.length, "exercise")}
+        actions={
+          <>
+            {selectionMode ? (
+              <>
+                <Button
+                  variant="filled"
+                  color="red"
+                  size="xs"
+                  disabled={selectedIds.size === 0}
+                  onClick={handleBulkDelete}
+                >
+                  Delete ({selectedIds.size})
+                </Button>
                 <ActionIcon
                   variant="default"
                   size="lg"
-                  onClick={enter}
-                  aria-label="Select exercises"
+                  onClick={exit}
+                  aria-label="Cancel selection"
                 >
-                  <IconSolarCheckSquareBroken className="text-xl" />
+                  <IconSolarCloseCircleBroken className="text-xl" />
                 </ActionIcon>
-              )}
-              <ActionIcon
-                variant="default"
-                size="lg"
-                onClick={openDrawer}
-                aria-label="Create exercise"
-              >
-                <IconSolarAddCircleBroken className="text-xl" />
-              </ActionIcon>
-            </>
-          )}
-        </div>
-      </header>
+              </>
+            ) : (
+              <>
+                {exercises.length > 0 && (
+                  <ActionIcon
+                    variant="default"
+                    size="lg"
+                    onClick={enter}
+                    aria-label="Select exercises"
+                  >
+                    <IconSolarCheckSquareBroken className="text-xl" />
+                  </ActionIcon>
+                )}
+                <ActionIcon
+                  variant="default"
+                  size="lg"
+                  onClick={openDrawer}
+                  aria-label="Create exercise"
+                >
+                  <IconSolarAddCircleBroken className="text-xl" />
+                </ActionIcon>
+              </>
+            )}
+          </>
+        }
+      />
 
       {exercises.length > 0 && (
         <div className="sticky top-0 z-10 flex flex-col gap-2 bg-surface px-4 pt-1 pb-3">
@@ -230,11 +235,11 @@ const ExercisesPage = () => {
               aria-label="Filter by category"
               className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1"
             >
-              <Chip value={ALL_CATEGORIES} size="sm" className="shrink-0">
+              <Chip value={ALL_CATEGORIES} size="sm" radius="xs" className="shrink-0">
                 All
               </Chip>
               {usedCategories.map((cat) => (
-                <Chip key={cat.id} value={cat.id} size="sm" className="shrink-0">
+                <Chip key={cat.id} value={cat.id} size="sm" radius="xs" className="shrink-0">
                   {cat.name}
                 </Chip>
               ))}

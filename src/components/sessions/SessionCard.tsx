@@ -1,7 +1,7 @@
 import { UnstyledButton } from "@mantine/core";
 import { useNavigate } from "@tanstack/react-router";
 
-import { cn } from "~/cn";
+import { selectableRowClass } from "~/components/selectable-row";
 import SelectionIndicator from "~/components/SelectionIndicator";
 import type { Exercise, Session } from "~/db/index";
 import { useLongPressSelect } from "~/hooks/use-long-press-select";
@@ -55,29 +55,30 @@ const SessionCard = ({
         }
       }}
       aria-pressed={selectionMode ? isSelected : undefined}
-      className={cn(
-        "flex w-full select-none items-stretch overflow-hidden rounded-xl border transition-colors duration-150 [-webkit-touch-callout:none]",
-        selectionMode && isSelected
-          ? "border-primary-500/40 bg-surface-hover"
-          : "border-line bg-surface-raised hover:border-line-strong",
-      )}
+      className={selectableRowClass(selectionMode, isSelected)}
     >
       {selectionMode && <SelectionIndicator selected={isSelected} />}
 
-      <article className="min-w-0 flex-1 px-4 py-3 text-left">
+      <article className="min-w-0 flex-1 py-3 text-left">
         <header className="flex items-baseline justify-between gap-2">
-          <h3 className="text-sm font-semibold text-fg">{formatSessionDate(session.date)}</h3>
-          <span className="shrink-0 text-xs font-medium text-primary-500">
+          <h3 className="font-display text-xl leading-tight font-bold uppercase text-fg">
+            {formatSessionDate(session.date)}
+          </h3>
+          <span className="shrink-0 font-display text-xl font-bold tabular-nums text-primary-500">
             {formatVolume(sessVolume(session))}
           </span>
         </header>
-        {customName && <p className="mt-0.5 truncate text-xs text-fg-muted">{session.name}</p>}
-        <p className="mt-1 truncate text-sm text-fg-subtle">
+        {customName && (
+          <p className="truncate text-xs font-bold uppercase tracking-[0.1em] text-fg-muted">
+            {session.name}
+          </p>
+        )}
+        <p className="mt-1 truncate text-sm text-fg-muted">
           {names.length === 0
             ? "No exercises"
             : names.slice(0, NAMES_SHOWN).join(", ") + (extra > 0 ? ` +${extra} more` : "")}
         </p>
-        <p className="mt-1 text-xs text-fg-faint">
+        <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.08em] text-fg-faint">
           {pluralize(sessSetCount(session), "set")} · {pluralize(names.length, "exercise")}
         </p>
       </article>

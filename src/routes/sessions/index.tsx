@@ -7,6 +7,8 @@ import IconSolarCheckSquareBroken from "~icons/solar/check-square-broken";
 import IconSolarCloseCircleBroken from "~icons/solar/close-circle-broken";
 
 import EmptyState from "~/components/EmptyState";
+import PageHeader from "~/components/PageHeader";
+import SectionHeading from "~/components/SectionHeading";
 import SessionCard from "~/components/sessions/SessionCard";
 import { deleteSessions } from "~/db/delete-sessions";
 import { useExercisesById } from "~/hooks/use-exercises";
@@ -54,9 +56,9 @@ const HistoryPage = () => {
     content = (
       <div className="flex flex-col gap-2 px-4">
         <Skeleton height={20} width={120} mb={4} />
-        <Skeleton height={92} radius="xl" />
-        <Skeleton height={92} radius="xl" />
-        <Skeleton height={92} radius="xl" />
+        <Skeleton height={92} />
+        <Skeleton height={92} />
+        <Skeleton height={92} />
       </div>
     );
   } else if (sessions.length === 0) {
@@ -77,15 +79,15 @@ const HistoryPage = () => {
   } else {
     content = groupByWeek(sessions).map((week) => (
       <section key={week.weekStart} aria-label={formatWeekLabel(week.weekStart, today)}>
-        <header className="sticky top-0 z-10 flex items-baseline justify-between bg-surface px-4 pt-4 pb-2">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-fg-subtle">
+        <header className="sticky top-0 z-10 flex items-baseline justify-between border-b-2 border-fg bg-surface px-4 pt-5 pb-1">
+          <SectionHeading className="text-fg">
             {formatWeekLabel(week.weekStart, today)}
-          </h2>
-          <p className="text-xs text-fg-faint">
+          </SectionHeading>
+          <p className="text-xs font-bold uppercase tracking-[0.1em] text-fg-faint">
             {pluralize(week.sessions.length, "workout")} · {formatVolume(week.volume)}
           </p>
         </header>
-        <ul className="flex flex-col gap-2 px-4">
+        <ul className="px-4">
           {week.sessions.map((s) => (
             <li key={s.id}>
               <SessionCard
@@ -105,39 +107,47 @@ const HistoryPage = () => {
 
   return (
     <div className="pb-6">
-      <header className="flex items-center justify-between px-4 pt-6 pb-2">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">History</h1>
-          <p className="mt-1 text-xs text-fg-faint">
-            {sessions ? `${pluralize(sessions.length, "workout")} logged` : "Loading…"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {selectionMode ? (
-            <>
-              <Button
-                variant="filled"
-                color="red"
-                size="xs"
-                disabled={selectedIds.size === 0}
-                onClick={handleBulkDelete}
-              >
-                Delete ({selectedIds.size})
-              </Button>
-              <ActionIcon variant="default" size="lg" onClick={exit} aria-label="Cancel selection">
-                <IconSolarCloseCircleBroken className="text-xl" />
-              </ActionIcon>
-            </>
-          ) : (
-            sessions &&
-            sessions.length > 0 && (
-              <ActionIcon variant="default" size="lg" onClick={enter} aria-label="Select workouts">
-                <IconSolarCheckSquareBroken className="text-xl" />
-              </ActionIcon>
-            )
-          )}
-        </div>
-      </header>
+      <PageHeader
+        title="History"
+        subtitle={sessions ? `${pluralize(sessions.length, "workout")} logged` : "Loading…"}
+        actions={
+          <>
+            {selectionMode ? (
+              <>
+                <Button
+                  variant="filled"
+                  color="red"
+                  size="xs"
+                  disabled={selectedIds.size === 0}
+                  onClick={handleBulkDelete}
+                >
+                  Delete ({selectedIds.size})
+                </Button>
+                <ActionIcon
+                  variant="default"
+                  size="lg"
+                  onClick={exit}
+                  aria-label="Cancel selection"
+                >
+                  <IconSolarCloseCircleBroken className="text-xl" />
+                </ActionIcon>
+              </>
+            ) : (
+              sessions &&
+              sessions.length > 0 && (
+                <ActionIcon
+                  variant="default"
+                  size="lg"
+                  onClick={enter}
+                  aria-label="Select workouts"
+                >
+                  <IconSolarCheckSquareBroken className="text-xl" />
+                </ActionIcon>
+              )
+            )}
+          </>
+        }
+      />
 
       {content}
     </div>

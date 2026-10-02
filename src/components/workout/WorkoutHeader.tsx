@@ -8,16 +8,23 @@ import IconSolarAltArrowLeftBroken from "~icons/solar/alt-arrow-left-broken";
 import IconSolarMenuDotsBold from "~icons/solar/menu-dots-bold";
 import IconTablerCheck from "~icons/tabler/check";
 
+import StatTile from "~/components/StatTile";
 import type { SaveStatus } from "~/hooks/use-workout-persistence";
 import { todayIso } from "~/lib/calc";
 import { formatSessionDate } from "~/lib/history";
 
+export interface WorkoutStats {
+  sets: number;
+  volume: string;
+}
+
 interface WorkoutHeaderProps {
   date: string;
   name: string;
-  summary: string;
-  /** `null` when nothing has been logged yet. */
-  saveStatus: SaveStatus | null;
+  /** `null` when nothing has been logged yet; `emptyHint` is shown instead. */
+  stats: WorkoutStats | null;
+  emptyHint: string;
+  saveStatus: SaveStatus;
   canDelete: boolean;
   onNameChange: (name: string) => void;
   onDateChange: (date: string) => void;
@@ -32,10 +39,17 @@ function formatWorkoutDate(iso: string): string {
   return formatSessionDate(iso);
 }
 
+const SaveStatusValue = ({ status }: { status: SaveStatus }) => {
+  if (status === "saving") return <Loader size={18} color="gray" aria-label="Saving" />;
+  if (status === "error") return <span className="text-danger">Error</span>;
+  return <IconTablerCheck className="text-success" role="img" aria-label="Saved" />;
+};
+
 const WorkoutHeader = ({
   date,
   name,
-  summary,
+  stats,
+  emptyHint,
   saveStatus,
   canDelete,
   onNameChange,
@@ -45,8 +59,8 @@ const WorkoutHeader = ({
   const [dateOpened, { toggle: toggleDate, close: closeDate }] = useDisclosure(false);
 
   return (
-    <header className="px-4 pt-4 pb-3">
-      <div className="flex items-center gap-2">
+    <header className="flex flex-col gap-3 border-b border-line px-4 pt-4 pb-4">
+      <div className="flex items-center justify-between">
         <ActionIcon
           component={Link}
           to="/sessions"
@@ -57,18 +71,34 @@ const WorkoutHeader = ({
         >
           <IconSolarAltArrowLeftBroken className="text-lg" />
         </ActionIcon>
+        {canDelete && (
+          <Menu position="bottom-end">
+            <Menu.Target>
+              <ActionIcon size="lg" variant="default" aria-label="Workout options">
+                <IconSolarMenuDotsBold className="text-lg" />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item color="red" onClick={onDelete}>
+                Delete workout
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        )}
+      </div>
 
-        <h1 className="text-2xl font-bold tracking-tight text-fg">
+      <div>
+        <h1 className="font-display text-[44px] leading-[0.9] font-extrabold uppercase text-fg">
           <Popover opened={dateOpened} onChange={(o) => !o && closeDate()} position="bottom-start">
             <Popover.Target>
               <UnstyledButton
                 onClick={toggleDate}
-                className="flex items-center gap-1.5"
+                className="flex items-center gap-2 text-left"
                 aria-haspopup="dialog"
                 aria-expanded={dateOpened}
               >
                 {formatWorkoutDate(date)}
-                <IconSolarAltArrowDownBroken className="text-base text-fg-faint" />
+                <IconSolarAltArrowDownBroken className="text-xl text-primary-500" />
                 <span className="sr-only">(change date)</span>
               </UnstyledButton>
             </Popover.Target>
@@ -85,56 +115,30 @@ const WorkoutHeader = ({
             </Popover.Dropdown>
           </Popover>
         </h1>
-
-        {canDelete && (
-          <Menu position="bottom-end">
-            <Menu.Target>
-              <ActionIcon
-                size="lg"
-                variant="subtle"
-                color="gray"
-                className="ml-auto"
-                aria-label="Workout options"
-              >
-                <IconSolarMenuDotsBold className="text-lg" />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item color="red" onClick={onDelete}>
-                Delete workout
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-        )}
+        <TextInput
+          variant="unstyled"
+          size="md"
+          aria-label="Workout name"
+          placeholder="Name this workout"
+          value={name}
+          onChange={(e) => onNameChange(e.currentTarget.value)}
+          classNames={{
+            input: "text-sm font-bold uppercase tracking-[0.14em] text-fg-subtle",
+          }}
+        />
       </div>
 
-      <TextInput
-        variant="unstyled"
-        size="md"
-        aria-label="Workout name"
-        placeholder="Workout name"
-        value={name}
-        onChange={(e) => onNameChange(e.currentTarget.value)}
-        className="mt-1"
-        classNames={{ input: "text-fg-muted" }}
-      />
-      <p className="flex items-center gap-1.5 text-xs text-fg-faint" aria-live="polite">
-        {saveStatus === "saved" && (
-          <span className="flex items-center gap-1 text-green-500">
-            <IconTablerCheck />
-            Saved
-          </span>
-        )}
-        {saveStatus === "saving" && (
-          <span className="flex items-center gap-1">
-            <Loader size={10} color="gray" />
-            Saving…
-          </span>
-        )}
-        {saveStatus === "error" && <span className="text-red-400">Not saved</span>}
-        {saveStatus && <span aria-hidden>·</span>}
-        <span>{summary}</span>
-      </p>
+      {stats ? (
+        <dl className="m-0 grid grid-cols-3 gap-px border border-line bg-line" aria-live="polite">
+          <StatTile label="Sets" value={stats.sets} />
+          <StatTile label="Volume" value={stats.volume} />
+          <StatTile label="Status" value={<SaveStatusValue status={saveStatus} />} />
+        </dl>
+      ) : (
+        <p className="text-sm font-semibold uppercase tracking-[0.1em] text-fg-faint">
+          {emptyHint}
+        </p>
+      )}
     </header>
   );
 };

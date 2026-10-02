@@ -44,12 +44,15 @@ const WorkoutSetRow = ({
   };
 
   return (
-    <li className={cn("rounded-lg px-1 py-1.5", set.done && "bg-primary-500/10")}>
+    <li className="border-t border-line py-1.5">
       <div className="flex items-center gap-2">
-        <span className="w-6 text-center text-sm font-medium text-fg-faint">{index + 1}</span>
+        <span className="w-7 font-display text-lg font-bold tabular-nums text-fg-faint">
+          {String(index + 1).padStart(2, "0")}
+        </span>
         <SegmentInputs
           segment={primary}
           type={primaryType}
+          done={set.done}
           hint={hintFor(previous, index, 0, primary.exId)}
           onChange={(updated) => updateSegment(0, updated)}
         />
@@ -59,9 +62,9 @@ const WorkoutSetRow = ({
           onClick={onToggleDone}
           aria-label={set.done ? `Mark set ${index + 1} not done` : `Mark set ${index + 1} done`}
           aria-pressed={set.done}
-          className="ml-auto"
+          className={cn("ml-auto", set.done && "motion-safe:animate-pop")}
         >
-          <IconTablerCheck className="text-xl" />
+          <IconTablerCheck className="text-2xl" />
         </ActionIcon>
         <Menu position="bottom-end">
           <Menu.Target>
@@ -90,14 +93,19 @@ const WorkoutSetRow = ({
         const label = isDrop ? "Drop" : shortExerciseName(exercises[seg.exId]);
         return (
           <div key={segIdx} className="mt-2 flex items-center gap-2">
-            <span className="w-6 text-center text-sm text-fg-faint">{isDrop ? "↓" : "+"}</span>
+            <span className="w-7 text-center font-display text-lg font-bold text-fg-faint">
+              {isDrop ? "↓" : "+"}
+            </span>
             <SegmentInputs
               segment={seg}
               type={exercises[seg.exId]?.type}
+              done={set.done}
               hint={hintFor(previous, index, segIdx, seg.exId)}
               onChange={(updated) => updateSegment(segIdx, updated)}
             />
-            <span className="min-w-0 flex-1 truncate text-xs text-fg-subtle">{label}</span>
+            <span className="min-w-0 flex-1 truncate text-xs font-bold uppercase tracking-[0.08em] text-fg-subtle">
+              {label}
+            </span>
             <ActionIcon
               size="lg"
               variant="subtle"

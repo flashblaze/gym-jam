@@ -168,21 +168,23 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] }),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg"],
+      includeAssets: ["favicon.svg", "favicon.ico", "apple-touch-icon-180x180.png"],
       manifest: {
         name: "Gym Jam",
         short_name: "GymJam",
         description: "Offline-first gym workout tracker",
-        theme_color: "#0f0f1c",
-        background_color: "#0f0f1c",
+        theme_color: "#0a0a0a",
+        background_color: "#0a0a0a",
         display: "standalone",
         orientation: "portrait",
         start_url: "/",
+        // Generated from public/favicon.svg by `vp run generate-pwa-assets`.
         icons: [
-          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+          { src: "/pwa-64x64.png", sizes: "64x64", type: "image/png" },
+          { src: "/pwa-192x192.png", sizes: "192x192", type: "image/png" },
+          { src: "/pwa-512x512.png", sizes: "512x512", type: "image/png" },
           {
-            src: "/icons/icon-512.png",
+            src: "/maskable-icon-512x512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
