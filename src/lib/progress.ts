@@ -1,6 +1,6 @@
 import type { Exercise, Segment, Session } from "~/db/index";
 
-import { formatDuration } from "./calc";
+import { formatDuration, formatVolume } from "./calc";
 import { formatSegmentValue } from "./sets";
 
 type ExerciseType = Exercise["type"];
@@ -17,6 +17,8 @@ export type MetricKey =
 
 export interface MetricInfo {
   label: string;
+  /** One-line plain-language explanation, shown behind an ⓘ. */
+  description?: string;
   better: "higher" | "lower";
   format: (value: number) => string;
 }
@@ -31,9 +33,26 @@ function formatReps(value: number): string {
 
 export const METRIC_INFO: Record<MetricKey, MetricInfo> = {
   topWeight: { label: "Top weight", better: "higher", format: formatKg },
-  e1rm: { label: "Est. 1RM", better: "higher", format: formatKg },
-  volume: { label: "Volume", better: "higher", format: formatKg },
-  leastAssist: { label: "Least assist", better: "lower", format: formatKg },
+  e1rm: {
+    label: "Est. 1RM",
+    description:
+      "Estimated one-rep max: the heaviest single rep you could likely lift, worked out as weight × (1 + reps ÷ 30). It rises when you add reps, not just weight.",
+    better: "higher",
+    format: formatKg,
+  },
+  volume: {
+    label: "Total lifted",
+    description: "Weight × reps, added up over every set. Bodyweight and timed sets don't count.",
+    better: "higher",
+    format: formatVolume,
+  },
+  leastAssist: {
+    label: "Least assist",
+    description:
+      "The lowest assistance weight you've used. Lower means you're lifting more of yourself.",
+    better: "lower",
+    format: formatKg,
+  },
   maxReps: { label: "Best set", better: "higher", format: formatReps },
   totalReps: { label: "Total reps", better: "higher", format: formatReps },
   bestTime: { label: "Best time", better: "higher", format: formatDuration },

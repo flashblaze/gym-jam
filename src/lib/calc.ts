@@ -20,9 +20,17 @@ export function sessSetCount(sess: Session): number {
   return c;
 }
 
+// User's locale, so grouping matches their phone (e.g. 2,035 or 2.035).
+const WHOLE_KG = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
+
+/** Whole kilograms with digit grouping, no unit: "2,035". */
+export function formatKgAmount(kg: number): string {
+  return WHOLE_KG.format(kg);
+}
+
+/** Total weight moved (weight × reps summed), e.g. "2,035 kg". */
 export function formatVolume(kg: number): string {
-  if (kg >= 1000) return (kg / 1000).toFixed(1) + "t";
-  return Math.round(kg) + " kg";
+  return `${formatKgAmount(kg)} kg`;
 }
 
 export function formatDate(iso: string): string {

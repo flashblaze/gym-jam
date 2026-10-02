@@ -126,6 +126,7 @@ const ExerciseDetailPage = () => {
                   label={METRIC_INFO[metric].label}
                   value={METRIC_INFO[metric].format(record.value)}
                   caption={formatDate(record.date)}
+                  info={METRIC_INFO[metric].description}
                   accent={i === 0}
                 />
               );

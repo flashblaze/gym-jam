@@ -12,9 +12,11 @@ import StatTile from "~/components/StatTile";
 import type { SaveStatus } from "~/hooks/use-workout-persistence";
 import { todayIso } from "~/lib/calc";
 import { formatSessionDate } from "~/lib/history";
+import { METRIC_INFO } from "~/lib/progress";
 
 export interface WorkoutStats {
   sets: number;
+  /** Total lifted in whole kg, already formatted (e.g. "2,035"). */
   volume: string;
 }
 
@@ -131,7 +133,12 @@ const WorkoutHeader = ({
       {stats ? (
         <dl className="m-0 grid grid-cols-3 gap-px border border-line bg-line" aria-live="polite">
           <StatTile label="Sets" value={stats.sets} />
-          <StatTile label="Volume" value={stats.volume} />
+          <StatTile
+            label="Total lifted"
+            value={stats.volume}
+            unit="kg"
+            info={METRIC_INFO.volume.description}
+          />
           <StatTile label="Status" value={<SaveStatusValue status={saveStatus} />} />
         </dl>
       ) : (

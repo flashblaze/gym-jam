@@ -3,6 +3,7 @@ import { describe, expect, test } from "vite-plus/test";
 import type { Exercise, Session } from "~/db/index";
 
 import {
+  METRIC_INFO,
   bestOf,
   bestSegment,
   computeMetrics,
@@ -129,5 +130,13 @@ describe("summaries", () => {
       lastBest: "82.5×6",
       sessionCount: 2,
     });
+  });
+});
+
+describe("metric descriptions", () => {
+  test("every non-obvious metric explains itself", () => {
+    for (const key of ["e1rm", "volume", "leastAssist"] as const) {
+      expect(METRIC_INFO[key].description?.length).toBeGreaterThan(0);
+    }
   });
 });

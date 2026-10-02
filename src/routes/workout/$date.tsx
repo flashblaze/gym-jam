@@ -20,7 +20,14 @@ import { useExercises, useExercisesById } from "~/hooks/use-exercises";
 import { usePreferences } from "~/hooks/use-preferences";
 import { useSessions } from "~/hooks/use-sessions";
 import { useWorkoutPersistence } from "~/hooks/use-workout-persistence";
-import { formatVolume, isLoggableDate, nanoid, pluralize, sessVolume, todayIso } from "~/lib/calc";
+import {
+  formatKgAmount,
+  isLoggableDate,
+  nanoid,
+  pluralize,
+  sessVolume,
+  todayIso,
+} from "~/lib/calc";
 import { haptic } from "~/lib/haptics";
 import { appendDrop, appendSuperset, insertAt, isSetComplete, removeAt } from "~/lib/sets";
 import {
@@ -105,7 +112,7 @@ const WorkoutEditor = ({
       ? null
       : {
           sets: doneSets,
-          volume: formatVolume(sessVolume(persisted)),
+          volume: formatKgAmount(sessVolume(persisted)),
         };
   const emptyHint = draft.blocks.length > 0 ? "Tick ✓ on a set to save it" : "Nothing logged yet";
 
@@ -131,7 +138,7 @@ const WorkoutEditor = ({
       return;
     }
     modals.openConfirmModal({
-      title: "Finish workout",
+      title: "Finish this workout?",
       children: (
         <p className="text-sm text-fg-muted">
           {pluralize(unfinished, "set")} {unfinished === 1 ? "isn't" : "aren't"} ticked and
@@ -342,15 +349,20 @@ const WorkoutEditor = ({
           Add exercise
         </Button>
         {doneSets > 0 && (
-          <Button
-            fullWidth
-            size="md"
-            className="mt-2"
-            leftSection={<IconTablerCheck />}
-            onClick={finishWorkout}
-          >
-            Finish workout
-          </Button>
+          <>
+            <Button
+              fullWidth
+              size="md"
+              className="mt-2"
+              leftSection={<IconTablerCheck />}
+              onClick={finishWorkout}
+            >
+              Done
+            </Button>
+            <p className="mt-2 text-center text-xs font-semibold uppercase tracking-[0.08em] text-fg-faint">
+              Sets save as soon as you tick them
+            </p>
+          </>
         )}
       </div>
 
