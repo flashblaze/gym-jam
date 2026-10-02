@@ -8,7 +8,7 @@ import { useLongPressSelect } from "~/hooks/use-long-press-select";
 import { formatVolume, pluralize, sessSetCount, sessVolume } from "~/lib/calc";
 import { formatSessionDate } from "~/lib/history";
 import { DELETED_EXERCISE_LABEL } from "~/lib/sets";
-import { DEFAULT_SESSION_NAME } from "~/lib/workout";
+import { isUnnamedSession } from "~/lib/workout";
 
 const NAMES_SHOWN = 3;
 
@@ -37,7 +37,7 @@ const SessionCard = ({
     (block) => exercises[block.exerciseId]?.name ?? DELETED_EXERCISE_LABEL,
   );
   const extra = names.length - NAMES_SHOWN;
-  const customName = session.name.trim() && session.name !== DEFAULT_SESSION_NAME;
+  const customName = !isUnnamedSession(session.name);
 
   return (
     <UnstyledButton

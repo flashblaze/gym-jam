@@ -50,6 +50,7 @@ const WorkoutSetRow = ({
           {String(index + 1).padStart(2, "0")}
         </span>
         <SegmentInputs
+          label={`Set ${index + 1}`}
           segment={primary}
           type={primaryType}
           done={set.done}
@@ -97,6 +98,7 @@ const WorkoutSetRow = ({
               {isDrop ? "↓" : "+"}
             </span>
             <SegmentInputs
+              label={`Set ${index + 1} ${isDrop ? "drop" : label}`}
               segment={seg}
               type={exercises[seg.exId]?.type}
               done={set.done}

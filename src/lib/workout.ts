@@ -29,7 +29,13 @@ export interface WorkoutDraft {
   blocks: DraftBlock[];
 }
 
-export const DEFAULT_SESSION_NAME = "Session";
+/** Name older versions stored for every workout; it means "unnamed". */
+export const LEGACY_SESSION_NAME = "Session";
+
+export function isUnnamedSession(name: string): boolean {
+  const trimmed = name.trim();
+  return trimmed === "" || trimmed === LEGACY_SESSION_NAME;
+}
 
 export function newDraftSet(segments: WorkoutSet, done = false): DraftSet {
   return { key: nanoid("set-"), segments, done };
@@ -49,7 +55,7 @@ export function draftFromSession(session: Session): WorkoutDraft {
 }
 
 export function emptyDraft(date: string): WorkoutDraft {
-  return { sessionId: nanoid("s-"), date, name: DEFAULT_SESSION_NAME, blocks: [] };
+  return { sessionId: nanoid("s-"), date, name: "", blocks: [] };
 }
 
 /** The persisted form: done sets only, blocks without done sets dropped. */
@@ -113,6 +119,19 @@ export function resolveDraft(
   const cleaned = dropUnknownExercises(saved, exercises);
   if (!stored) return cleaned;
   return sessionKey(toSession(cleaned)) === sessionKey(stored) ? cleaned : fallback;
+}
+
+/**
+ * Identifies which sets are ticked, ignoring their values. A change means a set was ticked,
+ * unticked, deleted or restored, which is saved immediately; value edits can be batched.
+ */
+export function doneSetsSignature(draft: WorkoutDraft): string {
+  return draft.blocks
+    .map((block) => {
+      const done = block.sets.filter((set) => set.done).map((set) => set.key);
+      return `${block.key}:${done.join(",")}`;
+    })
+    .join("|");
 }
 
 export function countUnfinishedSets(draft: WorkoutDraft): number {

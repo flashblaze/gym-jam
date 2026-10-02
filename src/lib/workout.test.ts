@@ -7,6 +7,8 @@ import {
   type WorkoutDraft,
   countUnfinishedSets,
   discardUnfinished,
+  doneSetsSignature,
+  isUnnamedSession,
   draftFromSession,
   fillFromHint,
   hintFor,
@@ -17,6 +19,7 @@ import {
   resolveDraft,
   sessionKey,
   toSession,
+  updateDraftSet,
   withSegments,
 } from "./workout";
 
@@ -184,5 +187,44 @@ describe("finishing", () => {
     expect(countUnfinishedSets(trimmed)).toBe(0);
     expect(trimmed.blocks).toHaveLength(1);
     expect(toSession(trimmed)).toEqual(toSession(draft));
+  });
+});
+
+describe("doneSetsSignature", () => {
+  const base = withPendingSet(draftFromSession(stored));
+  const pendingKey = base.blocks[0].sets[1].key;
+
+  test("ignores value edits", () => {
+    const edited = updateDraftSet(base, base.blocks[0].key, base.blocks[0].sets[0].key, (s) => ({
+      ...s,
+      segments: [{ exId: "bench", w: 85, r: 8 }],
+    }));
+    expect(doneSetsSignature(edited)).toBe(doneSetsSignature(base));
+  });
+
+  test("changes when a set is ticked or removed", () => {
+    const ticked = updateDraftSet(base, base.blocks[0].key, pendingKey, (s) => ({
+      ...s,
+      done: true,
+    }));
+    expect(doneSetsSignature(ticked)).not.toBe(doneSetsSignature(base));
+    const removed = {
+      ...base,
+      blocks: [{ ...base.blocks[0], sets: base.blocks[0].sets.slice(1) }],
+    };
+    expect(doneSetsSignature(removed)).not.toBe(doneSetsSignature(base));
+  });
+});
+
+describe("isUnnamedSession", () => {
+  test("treats empty and the legacy default as unnamed", () => {
+    expect(isUnnamedSession("")).toBe(true);
+    expect(isUnnamedSession("  ")).toBe(true);
+    expect(isUnnamedSession("Session")).toBe(true);
+    expect(isUnnamedSession("Push day")).toBe(false);
+  });
+
+  test("new workouts start unnamed", () => {
+    expect(resolveDraft(null, null, "2026-10-03", exercises).name).toBe("");
   });
 });

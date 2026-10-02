@@ -4,6 +4,8 @@ import type { Exercise, Segment } from "~/db/index";
 import { needsWeight } from "~/lib/sets";
 
 interface SegmentInputsProps {
+  /** Prefix for the inputs' accessible names, e.g. "Set 3" or "Set 3 drop". */
+  label: string;
   segment: Segment;
   type: Exercise["type"] | undefined;
   /** Done sets drop the input chrome so the numbers read like a scoreboard. */
@@ -21,7 +23,7 @@ function parseInput(value: string | number): number | null {
   return value === "" ? null : Number(value);
 }
 
-const SegmentInputs = ({ segment, type, done, hint, onChange }: SegmentInputsProps) => {
+const SegmentInputs = ({ label, segment, type, done, hint, onChange }: SegmentInputsProps) => {
   const variant = done ? "unstyled" : "default";
 
   if (type === "timed") {
@@ -39,7 +41,7 @@ const SegmentInputs = ({ segment, type, done, hint, onChange }: SegmentInputsPro
           inputMode="numeric"
           allowDecimal={false}
           allowNegative={false}
-          aria-label="Minutes"
+          aria-label={`${label} minutes`}
           placeholder={hintTotal ? String(Math.floor(hintTotal / 60)) : "min"}
           value={minutes || ""}
           onChange={(v) => onChange({ ...segment, r: (parseInput(v) ?? 0) * 60 + seconds })}
@@ -55,7 +57,7 @@ const SegmentInputs = ({ segment, type, done, hint, onChange }: SegmentInputsPro
           allowDecimal={false}
           allowNegative={false}
           max={59}
-          aria-label="Seconds"
+          aria-label={`${label} seconds`}
           placeholder={hintTotal ? String(hintTotal % 60).padStart(2, "0") : "sec"}
           value={seconds || ""}
           onChange={(v) => onChange({ ...segment, r: minutes * 60 + (parseInput(v) ?? 0) })}
@@ -76,7 +78,7 @@ const SegmentInputs = ({ segment, type, done, hint, onChange }: SegmentInputsPro
             hideControls
             inputMode="decimal"
             allowNegative={false}
-            aria-label="Weight (kg)"
+            aria-label={`${label} weight in kg`}
             placeholder={hint?.w != null ? String(hint.w) : "kg"}
             value={segment.w ?? ""}
             onChange={(v) => onChange({ ...segment, w: parseInput(v) })}
@@ -93,7 +95,7 @@ const SegmentInputs = ({ segment, type, done, hint, onChange }: SegmentInputsPro
         inputMode="numeric"
         allowDecimal={false}
         allowNegative={false}
-        aria-label="Reps"
+        aria-label={`${label} reps`}
         placeholder={hint?.r != null ? String(hint.r) : "reps"}
         value={segment.r ?? ""}
         onChange={(v) => onChange({ ...segment, r: parseInput(v) })}

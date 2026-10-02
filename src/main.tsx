@@ -6,6 +6,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import { db } from "./db";
+import { installChunkReloadHandler } from "./lib/chunk-reload";
 import { router } from "./router";
 import theme from "./theme";
 
@@ -20,6 +21,8 @@ import "@mantine/charts/styles.layer.css";
 import "@mantine/dates/styles.layer.css";
 import "@mantine/notifications/styles.layer.css";
 import "./index.css";
+
+installChunkReloadHandler();
 
 // Request durable IDB storage — reduces browser throttling of IDB in PWA mode.
 void navigator.storage?.persist();

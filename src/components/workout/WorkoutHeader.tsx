@@ -13,6 +13,7 @@ import type { SaveStatus } from "~/hooks/use-workout-persistence";
 import { todayIso } from "~/lib/calc";
 import { formatSessionDate } from "~/lib/history";
 import { METRIC_INFO } from "~/lib/progress";
+import { isUnnamedSession } from "~/lib/workout";
 
 export interface WorkoutStats {
   sets: number;
@@ -122,7 +123,7 @@ const WorkoutHeader = ({
           size="md"
           aria-label="Workout name"
           placeholder="Name this workout"
-          value={name}
+          value={isUnnamedSession(name) ? "" : name}
           onChange={(e) => onNameChange(e.currentTarget.value)}
           classNames={{
             input: "text-sm font-bold uppercase tracking-[0.14em] text-fg-subtle",

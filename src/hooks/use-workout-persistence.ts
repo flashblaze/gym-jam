@@ -2,7 +2,7 @@ import { notifications } from "@mantine/notifications";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { db } from "~/db/index";
-import { type WorkoutDraft, sessionKey, toSession } from "~/lib/workout";
+import { type WorkoutDraft, doneSetsSignature, sessionKey, toSession } from "~/lib/workout";
 import { clearDraft, saveDraft } from "~/lib/workout-draft-storage";
 
 const WRITE_DELAY_MS = 400;
@@ -11,7 +11,8 @@ const FAILED_WRITE = "failed";
 
 /**
  * Mirrors the draft to localStorage on every change and writes its done sets to IndexedDB
- * (debounced, one put/delete per write, flushed when the app is hidden or the page unmounts).
+ * (one put/delete per write; immediate for tick changes, debounced for edits, and flushed when
+ * the app is hidden, the page is left or the editor unmounts).
  */
 export type SaveStatus = "saved" | "saving" | "error";
 
@@ -20,6 +21,7 @@ export function useWorkoutPersistence(draft: WorkoutDraft, storedKey: string | n
   const [confirmedKey, setConfirmedKey] = useState<string | null>(storedKey);
   const [failed, setFailed] = useState(false);
   const latest = useRef(draft);
+  const lastSignature = useRef(doneSetsSignature(draft));
   const disposed = useRef(false);
 
   const flush = useCallback(() => {
@@ -52,6 +54,15 @@ export function useWorkoutPersistence(draft: WorkoutDraft, storedKey: string | n
     latest.current = draft;
     if (draft.blocks.length > 0) saveDraft(draft);
     else clearDraft(draft.date);
+
+    // Ticks, unticks, deletes and undos are written at once so a reload or killed app can't
+    // lose them; typing into a done set or renaming is batched.
+    const signature = doneSetsSignature(draft);
+    if (signature !== lastSignature.current) {
+      lastSignature.current = signature;
+      flush();
+      return;
+    }
     const timer = setTimeout(flush, WRITE_DELAY_MS);
     return () => clearTimeout(timer);
   }, [draft, flush]);
@@ -61,8 +72,11 @@ export function useWorkoutPersistence(draft: WorkoutDraft, storedKey: string | n
       if (document.hidden) flush();
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
+    // Fires on reload and navigation away, where visibilitychange may not (best effort).
+    window.addEventListener("pagehide", flush);
     return () => {
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", flush);
       flush();
     };
   }, [flush]);
