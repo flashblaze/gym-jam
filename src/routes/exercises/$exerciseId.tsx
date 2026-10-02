@@ -7,6 +7,7 @@ import { useEffect, useMemo } from "react";
 import IconSolarAltArrowLeftBroken from "~icons/solar/alt-arrow-left-broken";
 import IconSolarPenBroken from "~icons/solar/pen-broken";
 
+import Delayed from "~/components/Delayed";
 import EmptyState from "~/components/EmptyState";
 import EditExerciseDrawer from "~/components/exercises/EditExerciseDrawer";
 import ExerciseHistoryItem from "~/components/exercises/ExerciseHistoryItem";
@@ -44,12 +45,14 @@ const ExerciseDetailPage = () => {
 
   if (!exercise || history === undefined || categories === undefined) {
     return (
-      <div className="px-4 py-5">
-        <Skeleton height={28} width={120} mb={8} />
-        <Skeleton height={24} width={200} mb={16} />
-        <Skeleton height={140} mb={12} />
-        <Skeleton height={200} />
-      </div>
+      <Delayed>
+        <div className="px-4 py-5">
+          <Skeleton height={28} width={120} mb={8} />
+          <Skeleton height={24} width={200} mb={16} />
+          <Skeleton height={140} mb={12} />
+          <Skeleton height={200} />
+        </div>
+      </Delayed>
     );
   }
 

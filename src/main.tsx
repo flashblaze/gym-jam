@@ -6,6 +6,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import { db } from "./db";
+import { primeLiveCache } from "./hooks/cached-live-query";
+import { categoriesCache } from "./hooks/use-categories";
+import { exercisesCache } from "./hooks/use-exercises";
+import { sessionsCache } from "./hooks/use-sessions";
 import { installChunkReloadHandler } from "./lib/chunk-reload";
 import { router } from "./router";
 import theme from "./theme";
@@ -23,6 +27,11 @@ import "@mantine/notifications/styles.layer.css";
 import "./index.css";
 
 installChunkReloadHandler();
+
+// Warm the shared queries so screens render with data on first visit, not a loading state.
+primeLiveCache(sessionsCache);
+primeLiveCache(exercisesCache);
+primeLiveCache(categoriesCache);
 
 // Request durable IDB storage — reduces browser throttling of IDB in PWA mode.
 void navigator.storage?.persist();

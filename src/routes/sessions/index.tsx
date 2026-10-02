@@ -6,6 +6,7 @@ import IconSolarAddCircleBroken from "~icons/solar/add-circle-broken";
 import IconSolarCheckSquareBroken from "~icons/solar/check-square-broken";
 import IconSolarCloseCircleBroken from "~icons/solar/close-circle-broken";
 
+import Delayed from "~/components/Delayed";
 import EmptyState from "~/components/EmptyState";
 import PageHeader from "~/components/PageHeader";
 import SectionHeading from "~/components/SectionHeading";
@@ -54,12 +55,14 @@ const HistoryPage = () => {
   let content;
   if (loading) {
     content = (
-      <div className="flex flex-col gap-2 px-4">
-        <Skeleton height={20} width={120} mb={4} />
-        <Skeleton height={92} />
-        <Skeleton height={92} />
-        <Skeleton height={92} />
-      </div>
+      <Delayed>
+        <div className="flex flex-col gap-2 px-4">
+          <Skeleton height={20} width={120} mb={4} />
+          <Skeleton height={92} />
+          <Skeleton height={92} />
+          <Skeleton height={92} />
+        </div>
+      </Delayed>
     );
   } else if (sessions.length === 0) {
     content = (

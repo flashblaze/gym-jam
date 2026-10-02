@@ -9,6 +9,7 @@ import { type ReactNode, useEffect, useMemo, useState } from "react";
 import IconSolarAddCircleBroken from "~icons/solar/add-circle-broken";
 import IconTablerCheck from "~icons/tabler/check";
 
+import Delayed from "~/components/Delayed";
 import EmptyState from "~/components/EmptyState";
 import CreateExerciseDrawer from "~/components/exercises/CreateExerciseDrawer";
 import ExerciseBlock from "~/components/workout/ExerciseBlock";
@@ -477,8 +478,9 @@ const WorkoutPage = () => {
     [workoutKey],
   );
   const stored = lookup?.key === workoutKey ? lookup.session : undefined;
-  const exerciseList = useExercises();
-  const exercisesById = useExercisesById();
+  // Fresh, not cached: these seed the editor's draft once and the draft then gets saved.
+  const exerciseList = useExercises({ fresh: true });
+  const exercisesById = useExercisesById({ fresh: true });
   const categories = useCategories();
   const sessions = useSessions();
 
@@ -506,7 +508,11 @@ const WorkoutPage = () => {
     categories === undefined ||
     sessions === undefined
   ) {
-    return <WorkoutSkeleton />;
+    return (
+      <Delayed>
+        <WorkoutSkeleton />
+      </Delayed>
+    );
   }
 
   return (

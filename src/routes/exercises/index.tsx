@@ -3,12 +3,13 @@ import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import IconSolarAddCircleBroken from "~icons/solar/add-circle-broken";
 import IconSolarCheckSquareBroken from "~icons/solar/check-square-broken";
 import IconSolarCloseCircleBroken from "~icons/solar/close-circle-broken";
 import IconSolarMagniferBroken from "~icons/solar/magnifer-broken";
 
+import Delayed from "~/components/Delayed";
 import EmptyState from "~/components/EmptyState";
 import CreateExerciseDrawer from "~/components/exercises/CreateExerciseDrawer";
 import ExerciseListItem from "~/components/exercises/ExerciseListItem";
@@ -26,6 +27,14 @@ import { countSessionsUsing, exerciseSummaries } from "~/lib/progress";
 
 const EXERCISES_SCROLL_KEY = "exercises-list-scroll";
 const ALL_CATEGORIES = "all";
+
+function readStoredScroll(): string | null {
+  try {
+    return sessionStorage.getItem(EXERCISES_SCROLL_KEY);
+  } catch {
+    return null;
+  }
+}
 
 const notifyDeleteFailed = (err: unknown) => {
   notifications.show({
@@ -48,18 +57,30 @@ const ExercisesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
 
-  useEffect(() => {
-    const raw = sessionStorage.getItem(EXERCISES_SCROLL_KEY);
+  // Restore once the list has rendered (restoring onto the loading state lands short), and
+  // before paint so the list doesn't visibly jump.
+  const listReady = exercises !== undefined && categories !== undefined;
+  const scrollRestored = useRef(false);
+  useLayoutEffect(() => {
+    if (!listReady || scrollRestored.current) return;
+    scrollRestored.current = true;
     const main = document.querySelector("main");
-    if (raw != null && main) {
-      const y = Number.parseInt(raw, 10);
-      if (!Number.isNaN(y)) main.scrollTop = y;
-    }
-    return () => {
-      const mainEl = document.querySelector("main");
-      if (mainEl) sessionStorage.setItem(EXERCISES_SCROLL_KEY, String(mainEl.scrollTop));
-    };
-  }, []);
+    const y = Number.parseInt(readStoredScroll() ?? "", 10);
+    if (main && !Number.isNaN(y)) main.scrollTop = y;
+  }, [listReady]);
+
+  useEffect(
+    () => () => {
+      const main = document.querySelector("main");
+      if (!main) return;
+      try {
+        sessionStorage.setItem(EXERCISES_SCROLL_KEY, String(main.scrollTop));
+      } catch {
+        // Scroll memory is a convenience; ignore unavailable storage.
+      }
+    },
+    [],
+  );
 
   const summaries = useMemo(
     () => (sessions && exercisesById ? exerciseSummaries(sessions, exercisesById) : {}),
@@ -87,13 +108,15 @@ const ExercisesPage = () => {
 
   if (exercises === undefined || categories === undefined) {
     return (
-      <div className="flex flex-col gap-2 px-4 py-6">
-        <Skeleton height={36} width={160} mb={8} />
-        <Skeleton height={42} mb={8} />
-        <Skeleton height={56} />
-        <Skeleton height={56} />
-        <Skeleton height={56} />
-      </div>
+      <Delayed>
+        <div className="flex flex-col gap-2 px-4 py-6">
+          <Skeleton height={36} width={160} mb={8} />
+          <Skeleton height={42} mb={8} />
+          <Skeleton height={56} />
+          <Skeleton height={56} />
+          <Skeleton height={56} />
+        </div>
+      </Delayed>
     );
   }
 
