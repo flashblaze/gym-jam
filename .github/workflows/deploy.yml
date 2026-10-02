@@ -2,12 +2,19 @@ name: Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [main, ui-overhaul]
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment:
+      name: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
+      url: ${{ github.ref_name == 'main' && 'https://gj.flashblaze.dev' || 'https://gj-preview.flashblaze.dev' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -24,9 +31,10 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      # main → production Worker (gj.flashblaze.dev); ui-overhaul → preview Worker (gj-preview.flashblaze.dev).
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --config wrangler.jsonc
+          command: deploy --config wrangler.jsonc ${{ github.ref_name != 'main' && '--env preview' || '' }}
