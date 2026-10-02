@@ -2,8 +2,7 @@
 
 An offline-first gym workout tracker that runs entirely in the browser. No account, no server, no sync: your data lives in IndexedDB and stays on your device. Install it as a PWA and use it at the gym without a connection.
 
-- Production: [gj.flashblaze.dev](https://gj.flashblaze.dev)
-- Preview: [gj-preview.flashblaze.dev](https://gj-preview.flashblaze.dev)
+Live at [gj.flashblaze.dev](https://gj.flashblaze.dev).
 
 ## Features
 
@@ -94,12 +93,8 @@ Import validates the whole archive first, then replaces all local data.
 
 ## Deployment
 
-GitHub Actions (`.github/workflows/deploy.yml`) builds and deploys on push:
-
-- `main` → production Worker `gym-jam` on `gj.flashblaze.dev`
-- `ui-overhaul` → preview Worker `gym-jam-preview` on `gj-preview.flashblaze.dev` (`wrangler deploy --env preview`)
-
-The preview is a separate origin, so it has its own local data.
+GitHub Actions (`.github/workflows/deploy.yml`) builds and deploys every push to `main` to the
+`gym-jam` Cloudflare Worker on `gj.flashblaze.dev`.
 
 ## License
 

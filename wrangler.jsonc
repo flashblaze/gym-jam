@@ -11,12 +11,4 @@
   },
   "compatibility_flags": ["nodejs_compat"],
   "routes": [{ "pattern": "gj.flashblaze.dev", "custom_domain": true }],
-  "env": {
-    // Deployed from the ui-overhaul branch (`wrangler deploy --env preview`) as a separate Worker,
-    // so it never replaces production. Being another origin, it has its own IndexedDB data.
-    "preview": {
-      "name": "gym-jam-preview",
-      "routes": [{ "pattern": "gj-preview.flashblaze.dev", "custom_domain": true }],
-    },
-  },
 }
