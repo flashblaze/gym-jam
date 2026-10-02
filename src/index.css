@@ -72,6 +72,12 @@
     margin: 0;
     padding: 0;
   }
+
+  /* Browsers indent <dd> by 40px by default, which pushes stat values off their tiles. */
+  dl,
+  dd {
+    margin: 0;
+  }
 }
 
 html,
