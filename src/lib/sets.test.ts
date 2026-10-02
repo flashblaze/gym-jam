@@ -12,6 +12,7 @@ import {
   formatSet,
   isSegmentComplete,
   isSetComplete,
+  remapExercise,
   stripExercises,
 } from "./sets";
 
@@ -122,5 +123,45 @@ describe("stripExercises", () => {
 
   test("returns null when the session does not reference the exercises", () => {
     expect(stripExercises(session, new Set(["plank"]))).toBeNull();
+  });
+});
+
+describe("remapExercise", () => {
+  const session: Session = {
+    id: "s1",
+    date: "2026-10-02",
+    name: "",
+    exercises: [
+      {
+        exerciseId: "old",
+        sets: [
+          [
+            { exId: "old", w: 10, r: 10 },
+            { exId: "bench", w: 80, r: 5 },
+          ],
+        ],
+      },
+      {
+        exerciseId: "bench",
+        sets: [
+          [
+            { exId: "bench", w: 80, r: 8 },
+            { exId: "old", w: 5, r: 12 },
+          ],
+        ],
+      },
+    ],
+  };
+
+  test("re-points blocks and superset segments, keeping values", () => {
+    const result = remapExercise(session, "old", "new");
+    expect(result?.exercises[0].exerciseId).toBe("new");
+    expect(result?.exercises[0].sets[0][0]).toEqual({ exId: "new", w: 10, r: 10 });
+    expect(result?.exercises[1].sets[0][1]).toEqual({ exId: "new", w: 5, r: 12 });
+    expect(result?.exercises[1].exerciseId).toBe("bench");
+  });
+
+  test("returns null when the exercise isn't used", () => {
+    expect(remapExercise(session, "plank", "new")).toBeNull();
   });
 });

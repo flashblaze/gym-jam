@@ -1,7 +1,9 @@
-import { Button, Skeleton } from "@mantine/core";
+import { Button, Modal, Skeleton } from "@mantine/core";
+import { DatePicker } from "@mantine/dates";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import dayjs from "dayjs";
 import { useLiveQuery } from "dexie-react-hooks";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import IconSolarAddCircleBroken from "~icons/solar/add-circle-broken";
@@ -11,10 +13,10 @@ import EmptyState from "~/components/EmptyState";
 import CreateExerciseDrawer from "~/components/exercises/CreateExerciseDrawer";
 import ExerciseBlock from "~/components/workout/ExerciseBlock";
 import ExercisePickerDrawer, { type PinnedGroup } from "~/components/workout/ExercisePickerDrawer";
-import RestTimer from "~/components/workout/RestTimer";
 import WorkoutHeader from "~/components/workout/WorkoutHeader";
 import { deleteSessions } from "~/db/delete-sessions";
 import { type Category, type Exercise, type Session, db } from "~/db/index";
+import { loadWorkout, relocateWorkout } from "~/db/move-workout";
 import { useCategories } from "~/hooks/use-categories";
 import { useExercises, useExercisesById } from "~/hooks/use-exercises";
 import { usePreferences } from "~/hooks/use-preferences";
@@ -29,6 +31,8 @@ import {
   todayIso,
 } from "~/lib/calc";
 import { haptic } from "~/lib/haptics";
+import { formatSessionDate } from "~/lib/history";
+import { startRestTimer } from "~/lib/rest-timer";
 import { appendDrop, appendSuperset, insertAt, isSetComplete, removeAt } from "~/lib/sets";
 import {
   type WorkoutDraft,
@@ -94,10 +98,9 @@ const WorkoutEditor = ({
   const [draft, setDraft] = useState<WorkoutDraft>(() =>
     resolveDraft(stored, loadDraft(date), date, exercisesById),
   );
-  const { dispose, status } = useWorkoutPersistence(draft, sessionKey(stored));
+  const { dispose, resume, status } = useWorkoutPersistence(draft, sessionKey(stored));
+  const [moveOpened, setMoveOpened] = useState(false);
   const [finishing, setFinishing] = useState(false);
-  // Bumped on every completed set; 0 hides the rest timer.
-  const [restRun, setRestRun] = useState(0);
   const [preferences] = usePreferences();
   const [picker, setPicker] = useState<PickerTarget | null>(null);
   const [createName, setCreateName] = useState<string | null>(null);
@@ -210,7 +213,7 @@ const WorkoutEditor = ({
     setDraft((d) =>
       updateDraftSet(d, blockKey, setKey, (s) => ({ ...s, segments: filled, done: true })),
     );
-    if (preferences.restTimerEnabled) setRestRun((n) => n + 1);
+    if (preferences.restTimerEnabled) startRestTimer(preferences.restSeconds);
     haptic();
   };
 
@@ -235,6 +238,46 @@ const WorkoutEditor = ({
     showUndo("Exercise removed", () =>
       setDraft((d) => ({ ...d, blocks: insertAt(d.blocks, index, removed) })),
     );
+  };
+
+  const moveWorkout = async (toDate: string) => {
+    setMoveOpened(false);
+    const target = await loadWorkout(toDate, exercisesById);
+    const go = async () => {
+      // Stop this page's own saves so a pending write can't recreate the workout on the old date.
+      dispose();
+      try {
+        await relocateWorkout(draft, toDate, target);
+        notifications.show({
+          title: target ? "Workouts merged" : "Workout moved",
+          message: `Now on ${formatSessionDate(toDate)}.`,
+          color: "green",
+        });
+        await navigate({ to: "/workout/$date", params: { date: toDate } });
+      } catch (err) {
+        resume();
+        notifications.show({
+          title: "Move failed",
+          message: err instanceof Error ? err.message : "Could not move the workout.",
+          color: "red",
+        });
+      }
+    };
+    if (!target) {
+      await go();
+      return;
+    }
+    modals.openConfirmModal({
+      title: "Merge workouts?",
+      children: (
+        <p className="text-sm text-fg-muted">
+          {formatSessionDate(toDate)} already has a workout. Add this workout&apos;s exercises to
+          it?
+        </p>
+      ),
+      labels: { confirm: "Merge", cancel: "Cancel" },
+      onConfirm: () => void go(),
+    });
   };
 
   const deleteWorkout = () => {
@@ -333,6 +376,7 @@ const WorkoutEditor = ({
         canDelete={draft.blocks.length > 0}
         onNameChange={(name) => setDraft((d) => ({ ...d, name }))}
         onDateChange={(next) => void navigate({ to: "/workout/$date", params: { date: next } })}
+        onMove={() => setMoveOpened(true)}
         onDelete={deleteWorkout}
       />
 
@@ -366,14 +410,6 @@ const WorkoutEditor = ({
         )}
       </div>
 
-      {preferences.restTimerEnabled && restRun > 0 && (
-        <RestTimer
-          key={restRun}
-          targetSeconds={preferences.restSeconds}
-          onDismiss={() => setRestRun(0)}
-        />
-      )}
-
       <ExercisePickerDrawer
         opened={picker !== null}
         title={picker?.mode === "superset" ? "Superset with…" : "Add exercise"}
@@ -389,12 +425,27 @@ const WorkoutEditor = ({
         }}
       />
 
+      <Modal opened={moveOpened} onClose={() => setMoveOpened(false)} title="Move to another day">
+        <div className="flex justify-center">
+          <DatePicker
+            maxDate={todayIso()}
+            excludeDate={(d) => dayjs(d).format("YYYY-MM-DD") === date}
+            onChange={(value) => {
+              if (value) void moveWorkout(dayjs(value).format("YYYY-MM-DD"));
+            }}
+          />
+        </div>
+      </Modal>
+
       <CreateExerciseDrawer
         opened={createName !== null}
         onClose={() => setCreateName(null)}
         categories={categories}
         initialName={createName ?? ""}
         onCreated={(exercise) => addExercise(exercise.id)}
+        onUseExisting={(exercise) => {
+          if (!workoutExerciseIds.has(exercise.id)) addExercise(exercise.id);
+        }}
       />
     </div>
   );

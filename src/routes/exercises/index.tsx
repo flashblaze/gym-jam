@@ -2,7 +2,7 @@ import { ActionIcon, Button, Chip, CloseButton, Skeleton, TextInput } from "@man
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import IconSolarAddCircleBroken from "~icons/solar/add-circle-broken";
 import IconSolarCheckSquareBroken from "~icons/solar/check-square-broken";
@@ -21,6 +21,7 @@ import { useExercises, useExercisesById } from "~/hooks/use-exercises";
 import { useSelection } from "~/hooks/use-selection";
 import { useSessions } from "~/hooks/use-sessions";
 import { pluralize } from "~/lib/calc";
+import { matchesExerciseQuery } from "~/lib/exercise-names";
 import { countSessionsUsing, exerciseSummaries } from "~/lib/progress";
 
 const EXERCISES_SCROLL_KEY = "exercises-list-scroll";
@@ -37,6 +38,7 @@ const notifyDeleteFailed = (err: unknown) => {
 const byName = (a: Exercise, b: Exercise) => a.name.localeCompare(b.name);
 
 const ExercisesPage = () => {
+  const navigate = useNavigate();
   const exercises = useExercises();
   const exercisesById = useExercisesById();
   const sessions = useSessions();
@@ -101,7 +103,7 @@ const ExercisesPage = () => {
   const visible = exercises.filter(
     (ex) =>
       (categoryFilter === ALL_CATEGORIES || ex.category === categoryFilter) &&
-      (!q || ex.name.toLowerCase().includes(q)),
+      matchesExerciseQuery(ex.name, q),
   );
 
   const renderItems = (list: Exercise[], withCaption: boolean) => (
@@ -255,6 +257,9 @@ const ExercisesPage = () => {
         onClose={closeDrawer}
         categories={categories}
         initialName={searchQuery.trim()}
+        onUseExisting={(exercise) =>
+          void navigate({ to: "/exercises/$exerciseId", params: { exerciseId: exercise.id } })
+        }
       />
     </div>
   );

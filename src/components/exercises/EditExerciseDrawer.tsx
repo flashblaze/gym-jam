@@ -9,6 +9,7 @@ interface EditExerciseDrawerProps {
   onClose: () => void;
   exercise: Exercise;
   categories: Category[];
+  onMerge: () => void;
   onDelete: () => void;
 }
 
@@ -17,6 +18,7 @@ const EditExerciseDrawer = ({
   onClose,
   exercise,
   categories,
+  onMerge,
   onDelete,
 }: EditExerciseDrawerProps) => (
   <ExerciseFormDrawer
@@ -26,11 +28,13 @@ const EditExerciseDrawer = ({
     submitLabel="Save changes"
     categories={categories}
     initial={exercise}
+    excludeId={exercise.id}
     onSubmit={async (values) => {
       await db.exercises.put({ id: exercise.id, ...values });
       notifications.show({ title: "Exercise updated", message: values.name, color: "green" });
       onClose();
     }}
+    onMerge={onMerge}
     onDelete={onDelete}
   />
 );

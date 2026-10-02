@@ -9,6 +9,8 @@ import {
   discardUnfinished,
   doneSetsSignature,
   isUnnamedSession,
+  mergeDraftInto,
+  remapDraftExercise,
   draftFromSession,
   fillFromHint,
   hintFor,
@@ -226,5 +228,34 @@ describe("isUnnamedSession", () => {
 
   test("new workouts start unnamed", () => {
     expect(resolveDraft(null, null, "2026-10-03", exercises).name).toBe("");
+  });
+});
+
+describe("remapDraftExercise", () => {
+  test("re-points unfinished rows too", () => {
+    const draft = withPendingSet(draftFromSession(stored));
+    const result = remapDraftExercise(draft, "bench", "press");
+    expect(result?.blocks[0].exerciseId).toBe("press");
+    expect(result?.blocks[0].sets.every((s) => s.segments[0].exId === "press")).toBe(true);
+    expect(remapDraftExercise(draft, "plank", "press")).toBeNull();
+  });
+});
+
+describe("mergeDraftInto", () => {
+  const morning = draftFromSession(stored);
+  const evening = withPendingSet(draftFromSession({ ...stored, id: "s2", name: "" }));
+
+  test("appends exercises and keeps the target's identity and name", () => {
+    const merged = mergeDraftInto(morning, evening);
+    expect(merged.sessionId).toBe("s1");
+    expect(merged.name).toBe("Push");
+    expect(merged.blocks).toHaveLength(2);
+    expect(merged.blocks[1].sets).toHaveLength(2);
+  });
+
+  test("takes the moved workout's name when the target is unnamed", () => {
+    expect(mergeDraftInto({ ...morning, name: "" }, { ...evening, name: "Pump" }).name).toBe(
+      "Pump",
+    );
   });
 });

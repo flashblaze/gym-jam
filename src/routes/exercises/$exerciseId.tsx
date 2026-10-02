@@ -13,9 +13,11 @@ import ExerciseHistoryItem from "~/components/exercises/ExerciseHistoryItem";
 import ProgressChart from "~/components/exercises/ProgressChart";
 import SectionHeading from "~/components/SectionHeading";
 import StatTile from "~/components/StatTile";
+import ExercisePickerDrawer from "~/components/workout/ExercisePickerDrawer";
 import { deleteExercises } from "~/db/delete-exercises";
+import { mergeExercises } from "~/db/merge-exercises";
 import { useCategories } from "~/hooks/use-categories";
-import { useExercise } from "~/hooks/use-exercises";
+import { useExercise, useExercises } from "~/hooks/use-exercises";
 import { useSessions } from "~/hooks/use-sessions";
 import { formatDate, pluralize } from "~/lib/calc";
 import { TYPE_LABELS } from "~/lib/constants";
@@ -28,6 +30,8 @@ const ExerciseDetailPage = () => {
   const sessions = useSessions();
   const categories = useCategories();
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
+  const [mergeOpened, { open: openMerge, close: closeMerge }] = useDisclosure(false);
+  const allExercises = useExercises();
 
   const history = useMemo(
     () => (exercise && sessions ? exerciseHistory(sessions, exercise) : undefined),
@@ -51,6 +55,45 @@ const ExerciseDetailPage = () => {
 
   const metrics = METRICS_BY_TYPE[exercise.type];
   const categoryName = categories.find((c) => c.id === exercise.category)?.name;
+
+  const confirmMerge = (intoId: string) => {
+    closeMerge();
+    const into = allExercises?.find((e) => e.id === intoId);
+    if (!into) return;
+    const setCount = history.reduce((n, entry) => n + entry.sets.length, 0);
+    modals.openConfirmModal({
+      title: "Merge exercises",
+      children: (
+        <p className="text-sm text-fg-muted">
+          Merge &ldquo;{exercise.name}&rdquo; ({pluralize(setCount, "set")} in{" "}
+          {pluralize(history.length, "workout")}) into &ldquo;{into.name}&rdquo;? Its history moves
+          over and &ldquo;{exercise.name}&rdquo; is deleted. This cannot be undone.
+        </p>
+      ),
+      labels: { confirm: "Merge", cancel: "Cancel" },
+      onConfirm: () =>
+        void mergeExercises(exercise.id, into.id)
+          .then(() => {
+            notifications.show({
+              title: "Exercises merged",
+              message: `History moved to ${into.name}.`,
+              color: "green",
+            });
+            return navigate({
+              to: "/exercises/$exerciseId",
+              params: { exerciseId: into.id },
+              replace: true,
+            });
+          })
+          .catch((err: unknown) =>
+            notifications.show({
+              title: "Merge failed",
+              message: err instanceof Error ? err.message : "Could not merge the exercises.",
+              color: "red",
+            }),
+          ),
+    });
+  };
 
   const handleDelete = () => {
     modals.openConfirmModal({
@@ -160,7 +203,22 @@ const ExerciseDetailPage = () => {
         onClose={closeEdit}
         exercise={exercise}
         categories={categories}
+        onMerge={() => {
+          closeEdit();
+          openMerge();
+        }}
         onDelete={handleDelete}
+      />
+
+      <ExercisePickerDrawer
+        opened={mergeOpened}
+        title={`Merge “${exercise.name}” into…`}
+        exercises={(allExercises ?? []).filter((e) => e.type === exercise.type)}
+        categories={categories}
+        pinned={[]}
+        excludeIds={new Set([exercise.id])}
+        onClose={closeMerge}
+        onPick={confirmMerge}
       />
     </div>
   );

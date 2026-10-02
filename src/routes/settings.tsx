@@ -8,6 +8,7 @@ import IconSolarUpload from "~icons/solar/upload-minimalistic-broken";
 
 import PageHeader from "~/components/PageHeader";
 import SectionHeading from "~/components/SectionHeading";
+import CategoryManager from "~/components/settings/CategoryManager";
 import StatTile from "~/components/StatTile";
 import { db } from "~/db/index";
 import { REST_PRESETS, usePreferences } from "~/hooks/use-preferences";
@@ -158,6 +159,13 @@ const SettingsPage = () => {
               />
             )}
           </div>
+        </section>
+
+        <section aria-labelledby="category-settings">
+          <SectionHeading id="category-settings" className="mb-1 border-b-2 border-fg pb-1 text-fg">
+            Categories
+          </SectionHeading>
+          <CategoryManager />
         </section>
 
         <section aria-labelledby="data-settings">

@@ -2,10 +2,16 @@ import { Button, Drawer, Select, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useState } from "react";
 import IconSolarTrashBinMinimalisticBroken from "~icons/solar/trash-bin-minimalistic-broken";
+import IconTablerArrowMerge from "~icons/tabler/arrow-merge";
 
-import { type Category, type Exercise, db } from "~/db/index";
-import { nanoid } from "~/lib/calc";
+import { addCategory } from "~/db/categories";
+import type { Category, Exercise } from "~/db/index";
+import { useExercises } from "~/hooks/use-exercises";
+import { validateCategoryName } from "~/lib/categories";
 import { TYPE_LABELS } from "~/lib/constants";
+import { findSimilarExercises } from "~/lib/exercise-names";
+
+import ExerciseNameHints from "./ExerciseNameHints";
 
 export interface ExerciseFormValues {
   name: string;
@@ -32,7 +38,12 @@ interface ExerciseFormProps {
   initial: { name: string; category: string | null; type: Exercise["type"] };
   categories: Category[];
   submitLabel: string;
+  /** The exercise being edited, so it isn't reported as its own duplicate. */
+  excludeId?: string;
   onSubmit: (values: ExerciseFormValues) => Promise<void>;
+  /** Offered on duplicate warnings ("Use this") instead of creating another exercise. */
+  onUseExisting?: (exercise: Exercise) => void;
+  onMerge?: () => void;
   onDelete?: () => void;
 }
 
@@ -41,14 +52,22 @@ const ExerciseForm = ({
   initial,
   categories,
   submitLabel,
+  excludeId,
   onSubmit,
+  onUseExisting,
+  onMerge,
   onDelete,
 }: ExerciseFormProps) => {
+  const exercises = useExercises() ?? [];
   const [name, setName] = useState(initial.name);
   const [categoryId, setCategoryId] = useState(initial.category);
   const [newCatName, setNewCatName] = useState("");
   const [type, setType] = useState<Exercise["type"]>(initial.type);
   const [saving, setSaving] = useState(false);
+
+  const similar = findSimilarExercises(name, exercises, excludeId);
+  const newCategoryError =
+    categoryId === NEW_CATEGORY && newCatName ? validateCategoryName(newCatName, categories) : null;
 
   const categoryOptions = [
     { value: NEW_CATEGORY, label: "+ New category…" },
@@ -58,18 +77,18 @@ const ExerciseForm = ({
   const handleSubmit = async () => {
     const trimmedName = name.trim();
     if (!trimmedName) return notifyInvalid("Missing name", "Enter an exercise name.");
+    // Shown inline under the name field.
+    if (similar.exact) return;
     if (!categoryId) return notifyInvalid("Missing category", "Select or create a category.");
-    if (categoryId === NEW_CATEGORY && !newCatName.trim()) {
-      return notifyInvalid("Missing category name", "Enter a name for the new category.");
+    if (categoryId === NEW_CATEGORY) {
+      const error = validateCategoryName(newCatName, categories);
+      if (error) return notifyInvalid("Check the category name", error);
     }
 
     setSaving(true);
     try {
-      let category = categoryId;
-      if (categoryId === NEW_CATEGORY) {
-        category = nanoid("cat-");
-        await db.categories.add({ id: category, name: newCatName.trim() });
-      }
+      const category =
+        categoryId === NEW_CATEGORY ? (await addCategory(newCatName)).id : categoryId;
       await onSubmit({ name: trimmedName, category, type });
     } catch (err) {
       notifications.show({
@@ -95,8 +114,10 @@ const ExerciseForm = ({
         placeholder="e.g. Bench Press"
         value={name}
         onChange={(e) => setName(e.currentTarget.value)}
+        error={similar.exact && `Already exists as “${similar.exact.name}”`}
         data-autofocus
       />
+      <ExerciseNameHints similar={similar} onUseExisting={onUseExisting} />
       <Select
         label="Category"
         placeholder="Choose…"
@@ -111,6 +132,7 @@ const ExerciseForm = ({
           placeholder="e.g. Core"
           value={newCatName}
           onChange={(e) => setNewCatName(e.currentTarget.value)}
+          error={newCategoryError}
         />
       )}
       <Select
@@ -123,6 +145,17 @@ const ExerciseForm = ({
       <Button type="submit" loading={saving} fullWidth>
         {submitLabel}
       </Button>
+      {onMerge && (
+        <Button
+          variant="subtle"
+          color="gray"
+          fullWidth
+          leftSection={<IconTablerArrowMerge />}
+          onClick={onMerge}
+        >
+          Merge into another exercise…
+        </Button>
+      )}
       {onDelete && (
         <Button
           variant="subtle"

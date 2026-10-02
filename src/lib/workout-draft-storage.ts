@@ -56,6 +56,19 @@ function draftKeys(): string[] {
   return keys;
 }
 
+/** Applies `update` to every saved draft; a `null` result leaves that draft unchanged. */
+export function updateAllDrafts(update: (draft: WorkoutDraft) => WorkoutDraft | null): void {
+  try {
+    for (const key of draftKeys()) {
+      const draft = loadDraft(key.slice(PREFIX.length));
+      const next = draft && update(draft);
+      if (next) saveDraft(next);
+    }
+  } catch {
+    // Best effort: an unreadable draft is dropped by resolveDraft on next load anyway.
+  }
+}
+
 export function clearAllDrafts(): void {
   try {
     for (const key of draftKeys()) localStorage.removeItem(key);

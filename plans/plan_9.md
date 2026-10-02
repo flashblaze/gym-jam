@@ -1,5 +1,8 @@
 # Fixes and Improvements
 
+> **Status (2026-10-02):** Part 1 shipped in `da9034c`. Part 2 (I1–I5) implemented on `ui-overhaul`.
+> "Probably the same" warns but doesn't block. Exercise search uses the same name matching.
+
 ## Objective
 
 Fix the bugs found in the app review and add the workflow improvements that stop data problems at the source: duplicate exercises, wrong categories, workouts on the wrong day.

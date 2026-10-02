@@ -108,3 +108,18 @@ export function stripExercises(session: Session, ids: ReadonlySet<string>): Sess
   }
   return changed ? { ...session, exercises } : null;
 }
+
+/** Re-points every use of `fromId` to `intoId`. Returns `null` when the session doesn't use it. */
+export function remapExercise(session: Session, fromId: string, intoId: string): Session | null {
+  let changed = false;
+  const swap = (id: string) => {
+    if (id !== fromId) return id;
+    changed = true;
+    return intoId;
+  };
+  const exercises = session.exercises.map((block) => ({
+    exerciseId: swap(block.exerciseId),
+    sets: block.sets.map((set) => set.map((seg) => ({ ...seg, exId: swap(seg.exId) }))),
+  }));
+  return changed ? { ...session, exercises } : null;
+}

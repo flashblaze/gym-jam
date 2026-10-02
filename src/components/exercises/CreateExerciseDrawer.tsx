@@ -11,6 +11,8 @@ interface CreateExerciseDrawerProps {
   categories: Category[];
   initialName?: string;
   onCreated?: (exercise: Exercise) => void;
+  /** Picking an existing exercise from the duplicate warnings instead of creating one. */
+  onUseExisting?: (exercise: Exercise) => void;
 }
 
 const CreateExerciseDrawer = ({
@@ -19,6 +21,7 @@ const CreateExerciseDrawer = ({
   categories,
   initialName = "",
   onCreated,
+  onUseExisting,
 }: CreateExerciseDrawerProps) => (
   <ExerciseFormDrawer
     opened={opened}
@@ -27,6 +30,13 @@ const CreateExerciseDrawer = ({
     submitLabel="Create exercise"
     categories={categories}
     initial={{ name: initialName, category: null, type: "weighted" }}
+    onUseExisting={
+      onUseExisting &&
+      ((exercise) => {
+        onClose();
+        onUseExisting(exercise);
+      })
+    }
     onSubmit={async (values) => {
       const exercise: Exercise = { id: nanoid("ex-"), ...values };
       await db.exercises.add(exercise);

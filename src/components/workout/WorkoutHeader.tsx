@@ -31,6 +31,7 @@ interface WorkoutHeaderProps {
   canDelete: boolean;
   onNameChange: (name: string) => void;
   onDateChange: (date: string) => void;
+  onMove: () => void;
   onDelete: () => void;
 }
 
@@ -57,6 +58,7 @@ const WorkoutHeader = ({
   canDelete,
   onNameChange,
   onDateChange,
+  onMove,
   onDelete,
 }: WorkoutHeaderProps) => {
   const [dateOpened, { toggle: toggleDate, close: closeDate }] = useDisclosure(false);
@@ -82,6 +84,7 @@ const WorkoutHeader = ({
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
+              <Menu.Item onClick={onMove}>Move to another day…</Menu.Item>
               <Menu.Item color="red" onClick={onDelete}>
                 Delete workout
               </Menu.Item>

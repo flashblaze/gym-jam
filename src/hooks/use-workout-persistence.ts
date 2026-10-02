@@ -81,13 +81,18 @@ export function useWorkoutPersistence(draft: WorkoutDraft, storedKey: string | n
     };
   }, [flush]);
 
-  /** Stops all further writes (used right before the session is deleted). */
+  /** Stops all further writes (used right before the session is deleted or moved). */
   const dispose = useCallback(() => {
     disposed.current = true;
+  }, []);
+
+  /** Undoes `dispose` when the delete or move it guarded failed. */
+  const resume = useCallback(() => {
+    disposed.current = false;
   }, []);
 
   const currentKey = sessionKey(toSession(draft));
   const status: SaveStatus = failed ? "error" : currentKey === confirmedKey ? "saved" : "saving";
 
-  return { dispose, status };
+  return { dispose, resume, status };
 }

@@ -268,3 +268,38 @@ export function fillFromHint(
     r: emptyR ? hint.r : seg.r,
   };
 }
+
+/** Draft counterpart of `remapExercise`; `null` when the draft doesn't use `fromId`. */
+export function remapDraftExercise(
+  draft: WorkoutDraft,
+  fromId: string,
+  intoId: string,
+): WorkoutDraft | null {
+  const uses = draft.blocks.some(
+    (block) =>
+      block.exerciseId === fromId ||
+      block.sets.some((set) => set.segments.some((seg) => seg.exId === fromId)),
+  );
+  if (!uses) return null;
+  const swap = (id: string) => (id === fromId ? intoId : id);
+  return {
+    ...draft,
+    blocks: draft.blocks.map((block) => ({
+      ...block,
+      exerciseId: swap(block.exerciseId),
+      sets: block.sets.map((set) => ({
+        ...set,
+        segments: set.segments.map((seg) => ({ ...seg, exId: swap(seg.exId) })),
+      })),
+    })),
+  };
+}
+
+/** Appends `from`'s exercises to `into`, keeping `into`'s name unless it has none. */
+export function mergeDraftInto(into: WorkoutDraft, from: WorkoutDraft): WorkoutDraft {
+  return {
+    ...into,
+    name: isUnnamedSession(into.name) ? from.name : into.name,
+    blocks: [...into.blocks, ...from.blocks],
+  };
+}

@@ -1,14 +1,18 @@
 import { ActionIcon, Button } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import IconSolarCloseCircleBroken from "~icons/solar/close-circle-broken";
 
 import { cn } from "~/cn";
 import { haptic } from "~/lib/haptics";
+import {
+  type RestTimerState,
+  extendRestTimer,
+  isRestTimerExpired,
+  stopRestTimer,
+} from "~/lib/rest-timer";
 
 interface RestTimerProps {
-  /** Countdown length in seconds; 0 counts up instead. */
-  targetSeconds: number;
-  onDismiss: () => void;
+  timer: RestTimerState;
 }
 
 const EXTEND_SECONDS = 30;
@@ -20,26 +24,31 @@ function formatClock(totalSeconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-/** Starts when it mounts; remount (via `key`) to restart. */
-const RestTimer = ({ targetSeconds, onDismiss }: RestTimerProps) => {
-  const [startedAt] = useState(() => Date.now());
-  const [now, setNow] = useState(startedAt);
-  const [extra, setExtra] = useState(0);
+/** The running rest timer; shown app-wide by AppShell so it survives navigation. */
+const RestTimer = ({ timer }: RestTimerProps) => {
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
+    const id = setInterval(() => {
+      const t = Date.now();
+      if (isRestTimerExpired(timer, t)) stopRestTimer();
+      else setNow(t);
+    }, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [timer]);
 
-  const elapsed = Math.max(0, Math.floor((now - startedAt) / 1000));
-  const target = targetSeconds > 0 ? targetSeconds + extra : 0;
+  const elapsed = Math.max(0, Math.floor((now - timer.startedAt) / 1000));
+  const target = timer.targetSeconds > 0 ? timer.targetSeconds + timer.extraSeconds : 0;
   const countingDown = target > 0 && elapsed < target;
   const restOver = target > 0 && elapsed >= target;
   const litSegments =
     target > 0 ? Math.min(SEGMENT_COUNT, Math.floor((elapsed / target) * SEGMENT_COUNT)) : 0;
 
+  // Only buzz when rest ends while on screen, not when returning to an already-finished timer.
+  const wasOver = useRef(restOver);
   useEffect(() => {
-    if (restOver) haptic([200, 100, 200]);
+    if (restOver && !wasOver.current) haptic([200, 100, 200]);
+    wasOver.current = restOver;
   }, [restOver]);
 
   let clock = formatClock(elapsed);
@@ -50,7 +59,7 @@ const RestTimer = ({ targetSeconds, onDismiss }: RestTimerProps) => {
     <aside
       aria-label="Rest timer"
       className={cn(
-        "sticky bottom-0 mx-4 mt-4 flex items-center gap-3 bg-primary-500 py-1.5 pr-1.5 pl-3 text-surface shadow-lg",
+        "mx-3 mb-2 flex items-center gap-3 bg-primary-500 py-1.5 pr-1.5 pl-3 text-surface shadow-lg",
         restOver && "motion-safe:animate-flash",
       )}
     >
@@ -79,7 +88,7 @@ const RestTimer = ({ targetSeconds, onDismiss }: RestTimerProps) => {
           size="compact-md"
           variant="transparent"
           className="border-2 border-solid border-surface text-surface"
-          onClick={() => setExtra((e) => e + EXTEND_SECONDS)}
+          onClick={() => extendRestTimer(EXTEND_SECONDS)}
           aria-label={`Add ${EXTEND_SECONDS} seconds`}
         >
           +{EXTEND_SECONDS}
@@ -89,7 +98,7 @@ const RestTimer = ({ targetSeconds, onDismiss }: RestTimerProps) => {
         size="lg"
         variant="transparent"
         className="text-surface"
-        onClick={onDismiss}
+        onClick={stopRestTimer}
         aria-label="Dismiss rest timer"
       >
         <IconSolarCloseCircleBroken className="text-xl" />

@@ -4,6 +4,7 @@ import IconSolarAddCircleBroken from "~icons/solar/add-circle-broken";
 import IconSolarMagniferBroken from "~icons/solar/magnifer-broken";
 
 import type { Category, Exercise } from "~/db/index";
+import { findSimilarExercises, matchesExerciseQuery } from "~/lib/exercise-names";
 
 export interface PinnedGroup {
   label: string;
@@ -19,7 +20,8 @@ interface ExercisePickerDrawerProps {
   excludeIds: ReadonlySet<string>;
   onClose: () => void;
   onPick: (exerciseId: string) => void;
-  onCreate: (name: string) => void;
+  /** Offers "Create …" for unmatched searches; omit when only existing exercises make sense. */
+  onCreate?: (name: string) => void;
 }
 
 interface ExerciseOptionProps {
@@ -105,10 +107,10 @@ const ExercisePickerDrawer = ({
 
   const matches = q
     ? available
-        .filter((ex) => ex.name.toLowerCase().includes(q))
+        .filter((ex) => matchesExerciseQuery(ex.name, q))
         .sort((a, b) => a.name.localeCompare(b.name))
     : [];
-  const hasExactMatch = exercises.some((ex) => ex.name.toLowerCase() === q);
+  const hasExactMatch = findSimilarExercises(trimmed, exercises).exact !== undefined;
 
   return (
     <Drawer opened={opened} onClose={handleClose} position="bottom" size="85%" title={title}>
@@ -139,7 +141,7 @@ const ExercisePickerDrawer = ({
               No matching exercises
             </p>
           )}
-          {!hasExactMatch && (
+          {onCreate && !hasExactMatch && (
             <Button
               variant="light"
               fullWidth
