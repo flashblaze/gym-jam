@@ -1,105 +1,105 @@
 # Gym Jam
 
-An offline-first gym workout tracker that runs entirely in the browser. No account, no server, no sync — your data lives in IndexedDB and stays on your device. Install it as a PWA and use it at the gym without a connection.
+An offline-first gym workout tracker that runs entirely in the browser. No account, no server, no sync: your data lives in IndexedDB and stays on your device. Install it as a PWA and use it at the gym without a connection.
+
+- Production: [gj.flashblaze.dev](https://gj.flashblaze.dev)
+- Preview: [gj-preview.flashblaze.dev](https://gj-preview.flashblaze.dev)
 
 ## Features
 
-- **Log workouts** — pick an exercise, add sets with weight + reps (or duration for timed exercises), record drop sets and supersets in the same set row
-- **Session history** — browse past sessions by date, edit any session after the fact, bulk-delete
-- **Exercise library** — create and manage exercises grouped by category (weighted, bodyweight, assisted, timed types)
-- **Per-exercise history** — view every logged set for an exercise and a weight-over-time chart
-- **Export / Import** — back up your entire database as a ZIP archive (three CSV files) and restore it on any device
-- **Installable PWA** — works offline after first load; add to home screen on iOS and Android
+- **Workout logging**: one screen per day. Add exercises, enter weight × reps (or mm:ss for timed exercises) and tap ✓ to save each set. Last time's numbers appear as hints and fill empty fields when you tick. Drop sets and supersets live in each set's menu, and deletes can be undone.
+- **Saving**: ticked sets are saved immediately, while unticked rows stay in a per-day draft that survives closing the app.
+- **Rest timer**: an optional countdown (or count-up) after each set, with vibration when rest is over. You can turn it off in Settings.
+- **History**: workouts grouped by week, with total lifted per week. Long-press to multi-select and delete.
+- **Exercises**: search, category filters, and your last best set for each exercise. Each exercise page shows:
+  - records: top weight, estimated 1RM, total lifted (or reps/time for non-weighted exercises)
+  - a progress chart
+  - a history list with PR badges
+- **Export / import**: back up everything as a ZIP of CSV files. The import shows what's in the archive before replacing your data.
+- **Installable PWA**: works offline after the first load, on iOS and Android home screens.
 
 ## Stack
 
-| Layer     | Library                                                    |
-| --------- | ---------------------------------------------------------- |
-| UI        | React 19 + Mantine v9 + TailwindCSS v4                     |
-| Routing   | TanStack Router (file-based)                               |
-| Forms     | React Hook Form + Zod                                      |
-| Storage   | Dexie (IndexedDB wrapper) + dexie-react-hooks              |
-| PWA       | vite-plugin-pwa + Workbox                                  |
-| CSV       | Papa Parse + fflate                                        |
-| Icons     | Iconify (Solar, Tabler, Charm)                             |
-| Toolchain | Vite+ (`vp`) — wraps Vite, Rolldown, Vitest, Oxlint, Oxfmt |
-
-## Prerequisites
-
-- **Node.js** ≥ 18 (use `vp env` to manage versions if you have Vite+ installed)
-- **pnpm** ≥ 10 — `npm install -g pnpm`
-- **Vite+** global CLI — `npm install -g vite-plus` (provides the `vp` command)
+| Layer     | Library                                                   |
+| --------- | --------------------------------------------------------- |
+| UI        | React 19 + Mantine v9 (+ `@mantine/charts`) + Tailwind v4 |
+| Routing   | TanStack Router (file-based, per-route code splitting)    |
+| Storage   | Dexie (IndexedDB) + dexie-react-hooks                     |
+| CSV       | Papa Parse + fflate, validated with Zod                   |
+| PWA       | vite-plugin-pwa + Workbox                                 |
+| Icons     | Iconify (Solar, Tabler) via unplugin-icons                |
+| Toolchain | Vite+ (`vp`): wraps Vite, Rolldown, Vitest, Oxlint, Oxfmt |
+| Hosting   | Cloudflare Workers static assets (wrangler)               |
 
 ## Getting started
 
-```sh
-# Install dependencies
-vp install          # or: pnpm install
+Requires Node.js 24, pnpm 10 and the Vite+ CLI (`npm install -g vite-plus`).
 
-# Start the dev server
-vp dev              # opens http://localhost:5173
+```sh
+vp install          # install dependencies
+vp dev              # dev server at http://localhost:5173
 ```
 
-## Available commands
+## Commands
 
 ```sh
-vp dev              # Dev server with HMR
-vp build            # Type-check + production build
-vp preview          # Preview the production build locally
-vp check            # Format + lint + TypeScript type check
-vp test             # Run unit tests (Vitest)
-vp lint .           # Lint with Oxlint
-vp fmt              # Format with Oxfmt
+vp dev                       # dev server with HMR
+vp run build                 # type-check (tsc -b) + production build
+vp preview                   # serve the production build locally
+vp check                     # format + lint + type check
+vp test                      # unit tests
+vp run generate-pwa-assets   # regenerate app icons from public/favicon.svg
 ```
 
 ## Project structure
 
 ```
 src/
-  routes/             # File-based pages (TanStack Router)
-    log.tsx           # Log a new exercise
-    settings.tsx      # Export / import data
-    sessions/         # Session list + detail/edit
-    exercises/        # Exercise list + detail
+  routes/               # pages (TanStack Router)
+    workout/$date.tsx   # the workout logger: one per day, the app's start page
+    sessions/           # History (/sessions/$id redirects to the workout page)
+    exercises/          # exercise list + per-exercise progress
+    settings.tsx        # rest timer, export/import, about
   components/
-    layout/           # AppShell (top bar) + BottomNav
-    log/              # Set/segment row inputs, superset picker
-    sessions/         # Session card, exercise card, stats
-    exercises/        # Create/edit drawers, history, weight chart
-    form/             # Controlled* wrappers (React Hook Form + Mantine)
-    extended/         # Mantine .extend() components registered in theme
-  db/
-    index.ts          # Dexie schema (Category, Exercise, Session)
-    seed.ts           # Default exercises and categories
-  hooks/              # useLiveQuery wrappers (useExercises, useSessions, …)
-  lib/
-    calc.ts           # Formatting and computation utilities
-    csv/              # Export/import pipeline (schemas, flatten, archive)
+    workout/            # header, exercise blocks, set rows, picker, rest timer
+    sessions/ exercises/ layout/
+    extended/           # Mantine components with project defaults (registered in theme)
+  db/                   # Dexie schema, seeding, multi-table deletes
+  hooks/                # live-query hooks, persistence, preferences, selection
+  lib/                  # pure helpers: sets, workout drafts, progress metrics, history, csv/
+  theme.ts              # the only place colours are defined (with a contrast test)
 ```
 
 ## Data model
 
-All data is stored locally in IndexedDB via Dexie. There are three tables:
+Three IndexedDB tables:
 
-- **Category** — `{ id, name }`
-- **Exercise** — `{ id, name, category, type }` where `type` ∈ `weighted | bodyweight | assisted | timed`
-- **Session** — `{ id, date, name, exercises[] }` where each exercise holds an ordered array of sets, and each set is an array of segments (enabling supersets and drop sets)
+- **Category**: `{ id, name }`
+- **Exercise**: `{ id, name, category, type }`, where `type` is `weighted | bodyweight | assisted | timed`
+- **Session**: `{ id, date, name, exercises[] }`. Each exercise holds ordered sets, and each set is a list of segments, which is how drop sets and supersets are stored.
 
-## Export / Import
+Only ticked sets are stored in sessions. Unfinished rows are kept in `localStorage` drafts (`workout-draft:<date>`).
 
-Go to **Settings** → **Export Archive** to download a ZIP containing:
+## Export / import
 
-| File                   | Contents                                       |
-| ---------------------- | ---------------------------------------------- |
-| `categories.csv`       | All categories                                 |
-| `exercises.csv`        | All exercises with type and category reference |
-| `session_segments.csv` | All sets, one row per segment                  |
+**Settings → Export** downloads a ZIP containing:
 
-Import replaces the entire local database with the archive contents. Use it to migrate between devices or as a manual backup.
+| File                   | Contents                              |
+| ---------------------- | ------------------------------------- |
+| `categories.csv`       | All categories                        |
+| `exercises.csv`        | All exercises with type and category  |
+| `session_segments.csv` | Every logged set, one row per segment |
 
-## PWA / Offline
+Import validates the whole archive first, then replaces all local data.
 
-The app registers a Workbox service worker on first load and caches all assets. Subsequent visits — including after installing to the home screen — work without a network connection. Data is never sent anywhere.
+## Deployment
+
+GitHub Actions (`.github/workflows/deploy.yml`) builds and deploys on push:
+
+- `main` → production Worker `gym-jam` on `gj.flashblaze.dev`
+- `ui-overhaul` → preview Worker `gym-jam-preview` on `gj-preview.flashblaze.dev` (`wrangler deploy --env preview`)
+
+The preview is a separate origin, so it has its own local data.
 
 ## License
 

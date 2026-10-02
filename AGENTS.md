@@ -2,89 +2,28 @@
 
 # Using Vite+, the Unified Toolchain for the Web
 
-This project is using Vite+, a unified toolchain built on top of Vite, Rolldown, Vitest, tsdown, Oxlint, Oxfmt, and Vite Task. Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite, but it invokes Vite through `vp dev` and `vp build`.
+This project is using Vite+, a unified toolchain built on top of Vite, Rolldown, Vitest, tsdown, Oxlint, Oxfmt, and Vite Task. Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite, and it invokes Vite through `vp dev` and `vp build`. Run `vp help` to print a list of commands and `vp <command> --help` for information about a specific command.
 
-## Vite+ Workflow
+Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.dev/guide/.
 
-`vp` is a global binary that handles the full development lifecycle. Run `vp help` to print a list of commands and `vp <command> --help` for information about a specific command.
+## Built-in Commands vs Scripts
 
-### Start
+`vp <name>` runs a built-in command. `vp run <name>` runs a `package.json` script or a `vite.config.ts` task. Scripts cannot overwrite built-ins, so `vp dev` and `vp run dev` may do different things. Check `package.json` and `vite.config.ts` first, and run `vp run <name>` when the project defines a script or task with that name.
 
-- create - Create a new project from a template
-- migrate - Migrate an existing project to Vite+
-- config - Configure hooks and agent integration
-- staged - Run linters on staged files
-- install (`i`) - Install dependencies
-- env - Manage Node.js versions
+## Tool Versions
 
-### Develop
+Run `vp toolchain` to show versions and relationships in the active Vite+
+release. Add a tool name to select part of the graph. For example, run
+`vp toolchain vite`. Use `--global` to ignore the local `vite-plus` package. Use
+`vp why <package>` to show the package-manager dependency graph.
 
-- dev - Run the development server
-- check - Run format, lint, and TypeScript type checks
-- lint - Lint code
-- fmt - Format code
-- test - Run tests
-
-### Execute
-
-- run - Run monorepo tasks
-- exec - Execute a command from local `node_modules/.bin`
-- dlx - Execute a package binary without installing it as a dependency
-- cache - Manage the task cache
-
-### Build
-
-- build - Build for production
-- pack - Build libraries
-- preview - Preview production build
-
-### Manage Dependencies
-
-Vite+ automatically detects and wraps the underlying package manager such as pnpm, npm, or Yarn through the `packageManager` field in `package.json` or package manager-specific lockfiles.
-
-- add - Add packages to dependencies
-- remove (`rm`, `un`, `uninstall`) - Remove packages from dependencies
-- update (`up`) - Update packages to latest versions
-- dedupe - Deduplicate dependencies
-- outdated - Check for outdated packages
-- list (`ls`) - List installed packages
-- why (`explain`) - Show why a package is installed
-- info (`view`, `show`) - View package information from the registry
-- link (`ln`) / unlink - Manage local package links
-- pm - Forward a command to the package manager
-
-### Maintain
-
-- upgrade - Update `vp` itself to the latest version
-
-These commands map to their corresponding tools. For example, `vp dev --port 3000` runs Vite's dev server and works the same as Vite. `vp test` runs JavaScript tests through the bundled Vitest. The version of all tools can be checked using `vp --version`. This is useful when researching documentation, features, and bugs.
-
-## Common Pitfalls
-
-- **Using the package manager directly:** Do not use pnpm, npm, or Yarn directly. Vite+ can handle all package manager operations.
-- **Always use Vite commands to run tools:** Don't attempt to run `vp vitest` or `vp oxlint`. They do not exist. Use `vp test` and `vp lint` instead.
-- **Running scripts:** Vite+ built-in commands (`vp dev`, `vp build`, `vp test`, etc.) always run the Vite+ built-in tool, not any `package.json` script of the same name. To run a custom script that shares a name with a built-in command, use `vp run <script>`. For example, if you have a custom `dev` script that runs multiple services concurrently, run it with `vp run dev`, not `vp dev` (which always starts Vite's dev server).
-- **Do not install Vitest, Oxlint, Oxfmt, or tsdown directly:** Vite+ wraps these tools. They must not be installed directly. You cannot upgrade these tools by installing their latest versions. Always use Vite+ commands.
-- **Use Vite+ wrappers for one-off binaries:** Use `vp dlx` instead of package-manager-specific `dlx`/`npx` commands.
-- **Import JavaScript modules from `vite-plus`:** Instead of importing from `vite` or `vitest`, all modules should be imported from the project's `vite-plus` dependency. For example, `import { defineConfig } from 'vite-plus';` or `import { expect, test, vi } from 'vite-plus/test';`. You must not install `vitest` to import test utilities.
-- **Type-Aware Linting:** There is no need to install `oxlint-tsgolint`, `vp lint --type-aware` works out of the box.
-
-## CI Integration
-
-For GitHub Actions, consider using [`voidzero-dev/setup-vp`](https://github.com/voidzero-dev/setup-vp) to replace separate `actions/setup-node`, package-manager setup, cache, and install steps with a single action.
-
-```yaml
-- uses: voidzero-dev/setup-vp@v1
-  with:
-    cache: true
-- run: vp check
-- run: vp test
-```
-
-## Review Checklist for Agents
+## Review Checklist
 
 - [ ] Run `vp install` after pulling remote changes and before getting started.
-- [ ] Run `vp check` and `vp test` to validate changes.
+- [ ] Run `vp check` and `vp test` to format, lint, type check and test changes.
+- [ ] Check if there are `vite.config.ts` tasks or `package.json` scripts necessary for validation, run via `vp run <script>`.
+- [ ] If setup, runtime, or package-manager behavior looks wrong, run `vp env doctor` and include its output when asking for help.
+
 <!--VITE PLUS END-->
 
 ## Commands
@@ -104,22 +43,27 @@ Single-page React 19 app. No monorepo, no separate backend.
 
 ```
 src/
+  routes/       – TanStack Router file-based routes (routeTree.gen.ts is generated)
   components/
     extended/   – Mantine components extended with project defaults (via .extend())
-    form/       – React Hook Form controlled wrappers for Mantine inputs
-  assets/       – Static images
-  App.tsx       – Root component
-  main.tsx      – Entry point (MantineProvider, ModalsProvider, Notifications)
+    layout/     – AppShell, BottomNav
+    exercises/, sessions/, workout/ – feature components
+  db/           – Dexie schema (index.ts), seeding, multi-table mutations
+  hooks/        – useLiveQuery-backed data hooks
+  lib/          – Pure helpers: calc.ts, sets.ts (set validation/formatting/builders),
+                  workout.ts (in-progress workout draft ⇄ Session), history.ts (week grouping),
+                  progress.ts (per-exercise metrics, PRs, e1RM), csv/
+  main.tsx      – Entry point (MantineProvider, ModalsProvider, Notifications, RouterProvider)
   theme.ts      – Mantine theme (colors, font, component overrides)
   cn.ts         – clsx + tailwind-merge utility
-  index.css     – Global styles
+  index.css     – Global styles and Tailwind color tokens
 ```
 
 ### Stack
 
-- **React 19**, Mantine v9, TailwindCSS v4, React Hook Form, Zod, dayjs
+- **React 19**, Mantine v9 (+ `@mantine/charts` on recharts), TailwindCSS v4, Zod (CSV import validation), dayjs
 - **Dexie** (IndexedDB wrapper) + `dexie-react-hooks` for local persistence
-- **No router, no server-side API**
+- **TanStack Router** (file-based, `src/routes/`, `autoCodeSplitting` on, so each route component is its own chunk); no server-side API
 - Path alias: `~` → `src/`
 
 ### Mantine Setup
@@ -128,7 +72,7 @@ src/
 
 **Extended components** (`src/components/extended/`): Each wraps a Mantine component via `.extend()` to apply project-wide default props/classNames. All are registered in the Mantine theme — use Mantine components directly (e.g. `<Button>`) and they will pick up the extended defaults automatically.
 
-**Controlled form components** (`src/components/form/`): Each wraps a Mantine input with `useFormContext()` from React Hook Form, wiring `register`, `errors`, and `isSubmitting`/`isLoading` read-only state. Named `Controlled[ComponentName]` (e.g. `ControlledTextInput`). Both sets export from their respective `index.ts` barrel files.
+Only components the app renders are extended; add a new `Extended*` file (and register it in `theme.ts`) when you start using another Mantine component. Extended components export from `src/components/extended/index.ts`.
 
 ## Toast Notifications
 
@@ -161,8 +105,22 @@ notifications.show({
 - **Semantic HTML**: Use `<header>`, `<main>`, `<nav>`, `<section>`, `<article>`, `<footer>`, `<figure>`, `<h1>`–`<h6>`, `<p>`, `<span>`, `<dl>`/`<dt>`/`<dd>` instead of generic `<div>` where the element has a semantic role. Reserve `<div>` for pure layout wrappers with no semantic meaning.
 - **Mantine components**: Only use Mantine components that provide meaningful UI behavior beyond plain HTML — `Button`, `TextInput`, `PasswordInput`, `Table`, `CopyButton`, `Modal`, `Select`, `Checkbox`, `Badge`, `Timeline`, `Breadcrumbs`, `Anchor`, `Tabs`, `Accordion`, `Stepper`, `Notification`, `Tooltip`, `Popover`, `Menu`, `Drawer`, `Avatar`, `ActionIcon`, `Loader`, `Skeleton`, etc. Do NOT use Mantine layout/typography wrappers (`Text`, `Title`, `Group`, `Stack`, `Paper`, `Box`, `Container`, `Flex`, `Grid`, `SimpleGrid`, `Center`, `Space`, `Divider`) — use native HTML + Tailwind instead.
 - **MANDATORY — check Mantine before building custom UI**: Before writing any custom component for interactive or composite UI patterns, you MUST first check whether `@mantine/core` already provides that component. Only build a custom implementation if Mantine has no equivalent.
-- **Colors**: Use Tailwind color classes or CSS variables — never hardcode hex values. The primary color is `primary` (blue scale registered in the Mantine theme).
-- **Icons**: Always use Iconify via `unplugin-icons` — **never write inline SVGs**. Installed icon packs: `@iconify-json/solar`, `@iconify-json/tabler`, `@iconify-json/charm`. Import icons as React components: `import IconSolarEdit from "~icons/solar/pen-2-broken"`. Prefer `solar/*-broken` style for a consistent stroke look. Use `tabler/*` or `charm/*` when solar lacks the right icon. Size icons with Tailwind text classes (`text-sm`, `text-base`, `text-lg`).
+- **Colors**: Use the semantic token classes from `src/index.css` — never hardcode hex values. Hex values live only in the Mantine palettes in `src/theme.ts`; the Tailwind tokens read them via `--mantine-color-*` variables, so Mantine and Tailwind always agree.
+  - Text: `text-fg`, `text-fg-muted`, `text-fg-subtle`, `text-fg-faint`
+  - Surfaces: `bg-surface` (page), `bg-surface-raised` (cards), `bg-surface-hover` (hover/selected)
+  - Borders: `border-line`, `border-line-strong`
+  - Accent: `primary-50`…`primary-900` (electric lime; also Mantine's `primaryColor`). Status: `text-success`, `text-danger`
+  - `src/theme.test.ts` checks WCAG contrast of every text/surface pair; keep it passing when changing the palette.
+- **Visual language ("Scoreboard")**: dark only, hard 2px corners, hairline `border-line` rules instead of cards, uppercase letter-spaced labels. Headings and every number use `font-display` (Barlow Condensed) with `tabular-nums`; body text is Barlow. Animations (`animate-pop`, `animate-flash`) are always prefixed `motion-safe:`.
+- **Domain helpers**: Use `src/lib/sets.ts` for set validation (`isSegmentComplete`, `isSetComplete`), formatting (`formatSet`, `formatSegmentValue`), and building sets (`appendSet`, `appendDrop`, `appendSuperset`) instead of re-implementing them in components.
+- **Shared UI**: Use `PageHeader`, `SectionHeading` and `StatTile` (in a `grid … gap-px border border-line bg-line` `<dl>`) for page chrome, `selectableRowClass` + `SelectionIndicator` for tappable list rows, `EmptyState` (`src/components/EmptyState.tsx`) for empty lists/pages, `useSelection` + `useLongPressSelect` for multi-select lists, and `haptic()` from `src/lib/haptics.ts` for vibration feedback.
+- **Exercise names**: Use `src/lib/exercise-names.ts` for any name comparison or search: `matchesExerciseQuery` (search that understands DB/dumbbell, plurals and word order) and `findSimilarExercises` (exact / probably-the-same / related, used to warn about duplicates).
+- **Data operations**: Multi-record changes live in `src/db/` and keep drafts in sync: `deleteExercises`, `mergeExercises`, `deleteSessions`, `relocateWorkout` (move/merge a workout to another day), and the category functions in `src/db/categories.ts` (validated by `validateCategoryName`).
+- **Rest timer**: App-wide state in `src/lib/rest-timer.ts` (`startRestTimer`, `stopRestTimer`), rendered once by `AppShell`; don't keep timer state in pages.
+- **Preferences**: Per-device settings go through `usePreferences()` (`src/hooks/use-preferences.ts`), which validates stored values on read. Add new fields there with a default.
+- **Workout logging**: `/workout/$date` is the only place sessions are created or edited. Only sets marked done are written to IndexedDB (`toSession` in `src/lib/workout.ts`); unfinished rows live in a per-date localStorage draft. Delete sessions through `deleteSessions` (`src/db/delete-sessions.ts`) so stale drafts are cleared too.
+- **App icons**: Edit `public/favicon.svg`, then run `vp run generate-pwa-assets` (config in `pwa-assets.config.ts`) to regenerate the PWA PNGs.
+- **Icons**: Always use Iconify via `unplugin-icons` — **never write inline SVGs**. Installed icon packs: `@iconify-json/solar`, `@iconify-json/tabler`. Import icons as React components: `import IconSolarEdit from "~icons/solar/pen-2-broken"`. Prefer `solar/*-broken` style for a consistent stroke look. Use `tabler/*` when solar lacks the right icon. Size icons with Tailwind text classes (`text-sm`, `text-base`, `text-lg`).
 - **`cn()` utility**: Use `cn()` from `~/cn` (clsx + tailwind-merge) for conditional class merging.
 
 ## Code Conventions

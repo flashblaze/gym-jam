@@ -15,6 +15,13 @@ const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), 
 
 // https://vite.dev/config/
 export default defineConfig({
+  test: {
+    // Vitest v4 compatibility: preserve mock call history.
+    // Remove after tests no longer rely on calls from setup or earlier tests.
+    // https://viteplus.dev/guide/vitest-v5#remove-unneeded-compatibility-settings
+    // https://vitest.dev/guide/migration/#clearmocks-is-enabled-by-default
+    clearMocks: false,
+  },
   lint: {
     plugins: ["oxc", "typescript", "unicorn", "react"],
     categories: {
@@ -123,6 +130,13 @@ export default defineConfig({
           browser: true,
         },
       },
+      {
+        // Route files must export `Route` beside their component; the router plugin handles HMR.
+        files: ["src/routes/**/*.tsx"],
+        rules: {
+          "react/only-export-components": "off",
+        },
+      },
     ],
     options: {
       typeAware: true,
@@ -145,6 +159,8 @@ export default defineConfig({
     tanstackRouter({
       routesDirectory: "./src/routes",
       generatedRouteTree: "./src/routeTree.gen.ts",
+      // Each route's component becomes its own chunk, so e.g. recharts loads only on exercise pages.
+      autoCodeSplitting: true,
     }),
     react(),
     tailwindcss(),
@@ -152,21 +168,23 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] }),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg"],
+      includeAssets: ["favicon.svg", "favicon.ico", "apple-touch-icon-180x180.png"],
       manifest: {
         name: "Gym Jam",
         short_name: "GymJam",
         description: "Offline-first gym workout tracker",
-        theme_color: "#0f0f1c",
-        background_color: "#0f0f1c",
+        theme_color: "#0a0a0a",
+        background_color: "#0a0a0a",
         display: "standalone",
         orientation: "portrait",
         start_url: "/",
+        // Generated from public/favicon.svg by `vp run generate-pwa-assets`.
         icons: [
-          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+          { src: "/pwa-64x64.png", sizes: "64x64", type: "image/png" },
+          { src: "/pwa-192x192.png", sizes: "192x192", type: "image/png" },
+          { src: "/pwa-512x512.png", sizes: "512x512", type: "image/png" },
           {
-            src: "/icons/icon-512.png",
+            src: "/maskable-icon-512x512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",

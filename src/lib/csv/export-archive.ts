@@ -2,6 +2,7 @@ import { zipSync } from "fflate";
 import Papa from "papaparse";
 
 import { db } from "../../db";
+import { todayIso } from "../calc";
 import { sessionsToRows } from "./flatten";
 
 export async function createExportArchive(): Promise<Blob> {
@@ -29,7 +30,7 @@ export async function createExportArchive(): Promise<Blob> {
 export function downloadExport(blob: Blob) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  const date = new Date().toISOString().split("T")[0];
+  const date = todayIso();
   a.href = url;
   a.download = `gym-jam-export-${date}.zip`;
   document.body.appendChild(a);

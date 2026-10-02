@@ -2,84 +2,66 @@ import { type MantineColorsTuple, createTheme } from "@mantine/core";
 
 import {
   ExtendedActionIcon,
-  ExtendedAvatar,
   ExtendedButton,
-  ExtendedCard,
-  ExtendedCheckbox,
-  ExtendedColorPicker,
-  ExtendedDateInput,
-  ExtendedDatePickerInput,
-  ExtendedDateTimePicker,
+  ExtendedDrawer,
   ExtendedMenu,
   ExtendedModal,
-  ExtendedMultiSelect,
   ExtendedNotification,
   ExtendedNumberInput,
-  ExtendedPasswordInput,
-  ExtendedPinInput,
   ExtendedPopover,
   ExtendedSelect,
   ExtendedTextInput,
-  ExtendedTextarea,
-  ExtendedTimeInput,
 } from "./components/extended/index";
 
-// Black — high contrast, clean against the dark UI
-const primary: MantineColorsTuple = [
-  "#f5f5f5",
-  "#e0e0e0",
-  "#bdbdbd",
-  "#9e9e9e",
-  "#757575",
-  "#424242",
-  "#212121",
-  "#111111",
-  "#0a0a0a",
-  "#000000",
+// Scoreboard: electric lime on near-black. Tailwind's `primary-*`, `fg-*`, `surface-*` and `line-*`
+// utilities read these through CSS variables (see index.css), so this file is the only place hexes live.
+export const primary: MantineColorsTuple = [
+  "#F7FDE3",
+  "#EEFBC4",
+  "#E2F894",
+  "#D5F65F",
+  "#CCF545",
+  "#C6F432", // 5 — accent
+  "#AED61F",
+  "#8DAF14",
+  "#6B860D",
+  "#4A5D07",
 ];
 
-// Deep dark, slightly cool-toned
-const dark: MantineColorsTuple = [
-  "#d4d4e0", // 0 — body text
-  "#a8a8bc", // 1
-  "#7e7e96", // 2
-  "#565670", // 3
-  "#333348", // 4
-  "#232334", // 5 — inputs / elevated
-  "#18182a", // 6 — card surface
-  "#0f0f1c", // 7 — body background
-  "#0a0a14", // 8
-  "#06060c", // 9
+export const dark: MantineColorsTuple = [
+  "#F2F2EE", // 0 — text
+  "#C9C9C2", // 1 — muted text
+  "#A3A39B", // 2 — subtle text
+  "#8E8E86", // 3 — faint text (still ≥ 4.5:1 on every surface)
+  "#6A6A64", // 4 — strong line / input border (≥ 3:1 on page and raised surfaces)
+  "#1F1F1F", // 5 — hover / selected surface
+  "#151515", // 6 — raised surface
+  "#0A0A0A", // 7 — page background
+  "#050505", // 8
+  "#000000", // 9
 ];
 
 const theme = createTheme({
-  fontFamily: '"Geist Variable", sans-serif',
-  headings: { fontFamily: '"Geist Variable", sans-serif' },
+  fontFamily: '"Barlow", sans-serif',
+  headings: { fontFamily: '"Barlow Condensed", sans-serif', fontWeight: "800" },
   primaryColor: "primary",
-  primaryShade: { light: 5, dark: 4 },
+  primaryShade: { light: 6, dark: 5 },
+  autoContrast: true,
+  cursorType: "pointer",
+  defaultRadius: "xs",
+  radius: { xs: "2px", sm: "2px", md: "3px", lg: "4px", xl: "6px" },
   colors: { primary, dark },
   components: {
     Button: ExtendedButton,
     TextInput: ExtendedTextInput,
     NumberInput: ExtendedNumberInput,
-    DateInput: ExtendedDateInput,
-    PasswordInput: ExtendedPasswordInput,
-    Card: ExtendedCard,
-    ColorPicker: ExtendedColorPicker,
     Select: ExtendedSelect,
-    DateTimePicker: ExtendedDateTimePicker,
     Notification: ExtendedNotification,
-    Avatar: ExtendedAvatar,
     ActionIcon: ExtendedActionIcon,
-    PinInput: ExtendedPinInput,
-    DatePickerInput: ExtendedDatePickerInput,
-    Checkbox: ExtendedCheckbox,
     Modal: ExtendedModal,
+    Drawer: ExtendedDrawer,
     Menu: ExtendedMenu,
-    MultiSelect: ExtendedMultiSelect,
     Popover: ExtendedPopover,
-    TimeInput: ExtendedTimeInput,
-    Textarea: ExtendedTextarea,
   },
 });
 

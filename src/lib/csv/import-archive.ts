@@ -2,9 +2,15 @@ import { unzipSync } from "fflate";
 import Papa from "papaparse";
 import { z } from "zod";
 
-import { db } from "../../db";
+import { type Session, db } from "../../db";
 import { decodeBlockExId, rowsToSessions } from "./flatten";
-import { categoryRowSchema, exerciseRowSchema, sessionSegmentRowSchema } from "./schemas";
+import {
+  type CategoryRow,
+  type ExerciseRow,
+  categoryRowSchema,
+  exerciseRowSchema,
+  sessionSegmentRowSchema,
+} from "./schemas";
 
 function stripBOM(str: string): string {
   if (str.charCodeAt(0) === 0xfeff) {
@@ -13,7 +19,14 @@ function stripBOM(str: string): string {
   return str;
 }
 
-export async function importArchive(file: File): Promise<void> {
+export interface ParsedArchive {
+  categories: CategoryRow[];
+  exercises: ExerciseRow[];
+  sessions: Session[];
+}
+
+/** Reads and fully validates an export archive without touching the database. */
+export async function parseArchive(file: File): Promise<ParsedArchive> {
   const buffer = await file.arrayBuffer();
   const unzipped = unzipSync(new Uint8Array(buffer));
 
@@ -93,16 +106,22 @@ export async function importArchive(file: File): Promise<void> {
     }
   }
 
-  const restoredSessions = rowsToSessions(sessionRows);
+  return {
+    categories: categoriesRows,
+    exercises: exercisesRows,
+    sessions: rowsToSessions(sessionRows),
+  };
+}
 
+/** Replaces all local data with a parsed archive. */
+export async function writeArchive(archive: ParsedArchive): Promise<void> {
   await db.transaction("rw", [db.categories, db.exercises, db.sessions], async () => {
-    // Replace-all import
     await db.sessions.clear();
     await db.exercises.clear();
     await db.categories.clear();
 
-    await db.categories.bulkPut(categoriesRows);
-    await db.exercises.bulkPut(exercisesRows);
-    await db.sessions.bulkPut(restoredSessions);
+    await db.categories.bulkPut(archive.categories);
+    await db.exercises.bulkPut(archive.exercises);
+    await db.sessions.bulkPut(archive.sessions);
   });
 }

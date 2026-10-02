@@ -1,30 +1,52 @@
-import { ActionIcon, Button, Skeleton, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Button, Chip, CloseButton, Skeleton, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { notifications } from "@mantine/notifications";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import IconSolarAddCircleBroken from "~icons/solar/add-circle-broken";
 import IconSolarCheckSquareBroken from "~icons/solar/check-square-broken";
 import IconSolarCloseCircleBroken from "~icons/solar/close-circle-broken";
+import IconSolarMagniferBroken from "~icons/solar/magnifer-broken";
 
+import EmptyState from "~/components/EmptyState";
 import CreateExerciseDrawer from "~/components/exercises/CreateExerciseDrawer";
 import ExerciseListItem from "~/components/exercises/ExerciseListItem";
+import PageHeader from "~/components/PageHeader";
+import SectionHeading from "~/components/SectionHeading";
+import { deleteExercises } from "~/db/delete-exercises";
 import type { Exercise } from "~/db/index";
-import { db } from "~/db/index";
 import { useCategories } from "~/hooks/use-categories";
-import { useExercises } from "~/hooks/use-exercises";
+import { useExercises, useExercisesById } from "~/hooks/use-exercises";
+import { useSelection } from "~/hooks/use-selection";
 import { useSessions } from "~/hooks/use-sessions";
+import { pluralize } from "~/lib/calc";
+import { matchesExerciseQuery } from "~/lib/exercise-names";
+import { countSessionsUsing, exerciseSummaries } from "~/lib/progress";
 
 const EXERCISES_SCROLL_KEY = "exercises-list-scroll";
+const ALL_CATEGORIES = "all";
+
+const notifyDeleteFailed = (err: unknown) => {
+  notifications.show({
+    title: "Delete failed",
+    message: err instanceof Error ? err.message : "Could not delete the exercises.",
+    color: "red",
+  });
+};
+
+const byName = (a: Exercise, b: Exercise) => a.name.localeCompare(b.name);
 
 const ExercisesPage = () => {
+  const navigate = useNavigate();
   const exercises = useExercises();
+  const exercisesById = useExercisesById();
   const sessions = useSessions();
   const categories = useCategories();
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false);
-  const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const { selectionMode, selectedIds, toggle, startWith, enter, exit } = useSelection();
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
 
   useEffect(() => {
     const raw = sessionStorage.getItem(EXERCISES_SCROLL_KEY);
@@ -39,220 +61,206 @@ const ExercisesPage = () => {
     };
   }, []);
 
-  const lastDateMap: Record<string, string> = {};
-  if (sessions) {
-    for (const sess of sessions) {
-      for (const block of sess.exercises) {
-        for (const set of block.sets) {
-          for (const seg of set) {
-            const existing = lastDateMap[seg.exId];
-            if (!existing || sess.date > existing) {
-              lastDateMap[seg.exId] = sess.date;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  const filteredExercises = useMemo(() => {
-    if (!exercises) return undefined;
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return exercises;
-    return exercises.filter((ex) => ex.name.toLowerCase().includes(q));
-  }, [exercises, searchQuery]);
-
-  const byCategory: Record<string, Exercise[]> =
-    filteredExercises?.reduce(
-      (acc, ex) => {
-        (acc[ex.category] ??= []).push(ex);
-        return acc;
-      },
-      {} as Record<string, Exercise[]>,
-    ) ?? {};
-
-  const loading = exercises === undefined || categories === undefined;
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  const exitSelectionMode = () => {
-    setSelectionMode(false);
-    setSelectedIds(new Set());
-  };
-
-  const handleDelete = (exercise: Exercise) => {
-    modals.openConfirmModal({
-      title: "Delete exercise",
-      children: (
-        <Text size="sm">
-          Delete &ldquo;{exercise.name}&rdquo;? This will also remove it from all sessions. This
-          cannot be undone.
-        </Text>
-      ),
-      labels: { confirm: "Delete", cancel: "Cancel" },
-      confirmProps: { color: "red" },
-      onConfirm: () => {
-        void db
-          .transaction("rw", [db.exercises, db.sessions], async () => {
-            await db.exercises.delete(exercise.id);
-            const allSessions = await db.sessions.toArray();
-            for (const sess of allSessions) {
-              const filtered = sess.exercises.filter((e) => e.exerciseId !== exercise.id);
-              if (filtered.length !== sess.exercises.length) {
-                await db.sessions.put({ ...sess, exercises: filtered });
-              }
-            }
-          })
-          .catch(() => {});
-      },
-    });
-  };
+  const summaries = useMemo(
+    () => (sessions && exercisesById ? exerciseSummaries(sessions, exercisesById) : {}),
+    [sessions, exercisesById],
+  );
 
   const handleBulkDelete = () => {
-    const count = selectedIds.size;
     const ids = Array.from(selectedIds);
+    const affected = countSessionsUsing(sessions ?? [], selectedIds);
     modals.openConfirmModal({
       title: "Delete exercises",
       children: (
-        <Text size="sm">
-          Delete {count} exercise{count !== 1 ? "s" : ""}? They will also be removed from all
-          sessions. This cannot be undone.
-        </Text>
+        <p className="text-sm text-fg-muted">
+          Delete {pluralize(ids.length, "exercise")}?
+          {affected > 0 &&
+            ` Their sets will also be removed from ${pluralize(affected, "workout")}.`}{" "}
+          This cannot be undone.
+        </p>
       ),
-      labels: { confirm: `Delete (${count})`, cancel: "Cancel" },
+      labels: { confirm: `Delete (${ids.length})`, cancel: "Cancel" },
       confirmProps: { color: "red" },
-      onConfirm: () => {
-        void db
-          .transaction("rw", [db.exercises, db.sessions], async () => {
-            await db.exercises.bulkDelete(ids);
-            const allSessions = await db.sessions.toArray();
-            for (const sess of allSessions) {
-              const filtered = sess.exercises.filter((e) => !ids.includes(e.exerciseId));
-              if (filtered.length !== sess.exercises.length) {
-                await db.sessions.put({ ...sess, exercises: filtered });
-              }
-            }
-          })
-          .then(() => exitSelectionMode())
-          .catch(() => {});
-      },
+      onConfirm: () => void deleteExercises(ids).then(exit).catch(notifyDeleteFailed),
     });
   };
 
+  if (exercises === undefined || categories === undefined) {
+    return (
+      <div className="flex flex-col gap-2 px-4 py-6">
+        <Skeleton height={36} width={160} mb={8} />
+        <Skeleton height={42} mb={8} />
+        <Skeleton height={56} />
+        <Skeleton height={56} />
+        <Skeleton height={56} />
+      </div>
+    );
+  }
+
+  const categoryNames = Object.fromEntries(categories.map((c) => [c.id, c.name]));
+  const usedCategories = categories.filter((c) => exercises.some((ex) => ex.category === c.id));
+  const q = searchQuery.trim().toLowerCase();
+  const visible = exercises.filter(
+    (ex) =>
+      (categoryFilter === ALL_CATEGORIES || ex.category === categoryFilter) &&
+      matchesExerciseQuery(ex.name, q),
+  );
+
+  const renderItems = (list: Exercise[], withCaption: boolean) => (
+    <ul className="flex flex-col gap-1.5">
+      {list.map((ex) => (
+        <li key={ex.id}>
+          <ExerciseListItem
+            exercise={ex}
+            summary={summaries[ex.id]}
+            caption={withCaption ? categoryNames[ex.category] : undefined}
+            selectionMode={selectionMode}
+            isSelected={selectedIds.has(ex.id)}
+            onToggleSelect={() => toggle(ex.id)}
+            onLongPress={() => startWith(ex.id)}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+
+  let content: ReactNode;
+  if (exercises.length === 0) {
+    content = (
+      <EmptyState
+        message="No exercises yet."
+        action={
+          <Button size="md" leftSection={<IconSolarAddCircleBroken />} onClick={openDrawer}>
+            Create an exercise
+          </Button>
+        }
+      />
+    );
+  } else if (visible.length === 0) {
+    content = (
+      <EmptyState
+        message="No exercises match."
+        action={
+          q && (
+            <Button variant="light" leftSection={<IconSolarAddCircleBroken />} onClick={openDrawer}>
+              Create “{searchQuery.trim()}”
+            </Button>
+          )
+        }
+      />
+    );
+  } else if (categoryFilter === ALL_CATEGORIES && !q) {
+    content = usedCategories.map((cat) => (
+      <section key={cat.id} className="mb-5">
+        <SectionHeading className="border-b-2 border-fg pb-1 text-fg">{cat.name}</SectionHeading>
+        {renderItems(visible.filter((ex) => ex.category === cat.id).sort(byName), false)}
+      </section>
+    ));
+  } else {
+    content = renderItems([...visible].sort(byName), categoryFilter === ALL_CATEGORIES);
+  }
+
   return (
-    <div className="px-4 pb-6">
-      <header className="flex items-center justify-between py-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#d4d4e0]">Exercises</h1>
-          <p className="mt-1 text-xs text-[#565670]">
-            {exercises ? `${exercises.length} tracked` : "Loading…"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {selectionMode ? (
-            <>
-              <Button
-                variant="filled"
-                color="red"
-                size="xs"
-                disabled={selectedIds.size === 0}
-                onClick={handleBulkDelete}
-              >
-                Delete ({selectedIds.size})
-              </Button>
-              <ActionIcon
-                variant="default"
-                size="lg"
-                onClick={exitSelectionMode}
-                aria-label="Cancel selection"
-              >
-                <IconSolarCloseCircleBroken className="text-xl" />
-              </ActionIcon>
-            </>
-          ) : (
-            <>
-              {exercises && exercises.length > 0 && (
+    <div className="pb-6">
+      <PageHeader
+        title="Exercises"
+        subtitle={pluralize(exercises.length, "exercise")}
+        actions={
+          <>
+            {selectionMode ? (
+              <>
+                <Button
+                  variant="filled"
+                  color="red"
+                  size="xs"
+                  disabled={selectedIds.size === 0}
+                  onClick={handleBulkDelete}
+                >
+                  Delete ({selectedIds.size})
+                </Button>
                 <ActionIcon
                   variant="default"
                   size="lg"
-                  onClick={() => setSelectionMode(true)}
-                  aria-label="Select exercises"
+                  onClick={exit}
+                  aria-label="Cancel selection"
                 >
-                  <IconSolarCheckSquareBroken className="text-xl" />
+                  <IconSolarCloseCircleBroken className="text-xl" />
                 </ActionIcon>
-              )}
-              <ActionIcon
-                variant="default"
-                size="lg"
-                onClick={openDrawer}
-                aria-label="Create exercise"
-              >
-                <IconSolarAddCircleBroken className="text-xl" />
-              </ActionIcon>
-            </>
-          )}
-        </div>
-      </header>
+              </>
+            ) : (
+              <>
+                {exercises.length > 0 && (
+                  <ActionIcon
+                    variant="default"
+                    size="lg"
+                    onClick={enter}
+                    aria-label="Select exercises"
+                  >
+                    <IconSolarCheckSquareBroken className="text-xl" />
+                  </ActionIcon>
+                )}
+                <ActionIcon
+                  variant="default"
+                  size="lg"
+                  onClick={openDrawer}
+                  aria-label="Create exercise"
+                >
+                  <IconSolarAddCircleBroken className="text-xl" />
+                </ActionIcon>
+              </>
+            )}
+          </>
+        }
+      />
 
-      {!loading && exercises && exercises.length > 0 && (
-        <div className="mb-4">
+      {exercises.length > 0 && (
+        <div className="sticky top-0 z-10 flex flex-col gap-2 bg-surface px-4 pt-1 pb-3">
           <TextInput
-            label="Search exercises"
-            placeholder="Filter by name…"
+            aria-label="Search exercises"
+            placeholder="Search exercises"
             size="md"
+            leftSection={<IconSolarMagniferBroken />}
+            rightSection={
+              searchQuery && (
+                <CloseButton aria-label="Clear search" onClick={() => setSearchQuery("")} />
+              )
+            }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.currentTarget.value)}
-            className="w-full"
           />
+          <Chip.Group
+            value={categoryFilter}
+            onChange={(value) => setCategoryFilter(value || ALL_CATEGORIES)}
+          >
+            <div
+              role="radiogroup"
+              aria-label="Filter by category"
+              className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1"
+            >
+              <Chip value={ALL_CATEGORIES} size="sm" radius="xs" className="shrink-0">
+                All
+              </Chip>
+              {usedCategories.map((cat) => (
+                <Chip key={cat.id} value={cat.id} size="sm" radius="xs" className="shrink-0">
+                  {cat.name}
+                </Chip>
+              ))}
+            </div>
+          </Chip.Group>
         </div>
       )}
 
-      {loading ? (
-        <div className="flex flex-col gap-2">
-          <Skeleton height={48} radius="xl" />
-          <Skeleton height={48} radius="xl" />
-          <Skeleton height={48} radius="xl" />
-        </div>
-      ) : (
-        categories.map((cat) => {
-          const list = byCategory[cat.id];
-          if (!list?.length) return null;
-          return (
-            <section key={cat.id} className="mb-5">
-              <h2 className="mb-2 mt-4 text-[10px] font-medium uppercase tracking-widest text-[#565670]">
-                {cat.name}
-              </h2>
-              <div className="flex flex-col gap-1.5">
-                {list.map((ex) => (
-                  <ExerciseListItem
-                    key={ex.id}
-                    exercise={ex}
-                    lastSessionDate={lastDateMap[ex.id]}
-                    onDelete={() => handleDelete(ex)}
-                    selectionMode={selectionMode}
-                    isSelected={selectedIds.has(ex.id)}
-                    onToggleSelect={() => toggleSelect(ex.id)}
-                  />
-                ))}
-              </div>
-            </section>
-          );
-        })
-      )}
+      <div className="px-4">{content}</div>
 
-      {categories && (
-        <CreateExerciseDrawer opened={drawerOpened} onClose={closeDrawer} categories={categories} />
-      )}
+      <CreateExerciseDrawer
+        opened={drawerOpened}
+        onClose={closeDrawer}
+        categories={categories}
+        initialName={searchQuery.trim()}
+        onUseExisting={(exercise) =>
+          void navigate({ to: "/exercises/$exerciseId", params: { exerciseId: exercise.id } })
+        }
+      />
     </div>
   );
 };

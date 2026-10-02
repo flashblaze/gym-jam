@@ -1,98 +1,83 @@
-import { ActionIcon, UnstyledButton } from "@mantine/core";
+import { UnstyledButton } from "@mantine/core";
 import { useNavigate } from "@tanstack/react-router";
-import IconSolarTrashBinMinimalisticBroken from "~icons/solar/trash-bin-minimalistic-broken";
 
 import { cn } from "~/cn";
+import { selectableRowClass } from "~/components/selectable-row";
+import SelectionIndicator from "~/components/SelectionIndicator";
 import type { Exercise } from "~/db/index";
+import { useLongPressSelect } from "~/hooks/use-long-press-select";
 import { formatDate } from "~/lib/calc";
+import type { ExerciseSummary } from "~/lib/progress";
 
 interface ExerciseListItemProps {
   exercise: Exercise;
-  lastSessionDate: string | undefined;
-  onDelete?: () => void;
-  selectionMode?: boolean;
-  isSelected?: boolean;
-  onToggleSelect?: () => void;
+  summary: ExerciseSummary | undefined;
+  /** Shown under the name, e.g. the category when the list is not grouped. */
+  caption?: string;
+  selectionMode: boolean;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+  onLongPress: () => void;
 }
 
 const ExerciseListItem = ({
   exercise,
-  lastSessionDate,
-  onDelete,
-  selectionMode = false,
-  isSelected = false,
+  summary,
+  caption,
+  selectionMode,
+  isSelected,
   onToggleSelect,
+  onLongPress,
 }: ExerciseListItemProps) => {
   const navigate = useNavigate();
+  const longPress = useLongPressSelect(onLongPress);
 
   return (
     <UnstyledButton
+      {...longPress.handlers}
       onClick={() => {
+        if (longPress.consumeClick()) return;
         if (selectionMode) {
-          onToggleSelect?.();
+          onToggleSelect();
         } else {
           void navigate({ to: "/exercises/$exerciseId", params: { exerciseId: exercise.id } });
         }
       }}
-      className={cn(
-        "flex w-full items-center overflow-hidden rounded-xl border transition-all duration-150",
-        selectionMode && isSelected
-          ? "border-primary-500/40 bg-[#1c1c2e]"
-          : "border-white/8 bg-[#18182a]",
-      )}
+      aria-pressed={selectionMode ? isSelected : undefined}
+      className={cn(selectableRowClass(selectionMode, isSelected), "min-h-14 items-center")}
     >
-      {/* Selection indicator */}
-      {selectionMode && (
-        <div className="flex items-center pl-3 pr-2">
-          <span
-            className={cn(
-              "flex h-[22px] w-[22px] items-center justify-center rounded-full transition-all duration-150",
-              isSelected ? "bg-primary-500" : "border-2 border-[#333348]",
-            )}
-          >
-            {isSelected && (
-              <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                <path
-                  d="M1.5 4.5L4.5 7.5L9.5 1.5"
-                  stroke="#0f0f1c"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
-          </span>
-        </div>
-      )}
+      {selectionMode && <SelectionIndicator selected={isSelected} />}
 
-      {/* Item content */}
-      <div className="min-w-0 flex-1 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-[#d4d4e0]">{exercise.name}</span>
-          {!selectionMode && (
-            <span className="text-xs text-[#565670]">
-              {lastSessionDate ? formatDate(lastSessionDate) : "—"}
+      <span className="flex min-w-0 flex-1 items-center justify-between gap-3 py-2.5">
+        <span className="min-w-0">
+          <span className="block truncate font-display text-lg leading-tight font-bold uppercase text-fg">
+            {exercise.name}
+          </span>
+          {caption && (
+            <span className="block truncate text-xs font-bold uppercase tracking-[0.1em] text-fg-faint">
+              {caption}
             </span>
           )}
-        </div>
-      </div>
-
-      {/* Delete button (normal mode only) */}
-      {!selectionMode && onDelete && (
-        <div className="flex items-center pr-3">
-          <ActionIcon
-            variant="transparent"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            aria-label="Delete exercise"
-          >
-            <IconSolarTrashBinMinimalisticBroken className="text-red-400/60" />
-          </ActionIcon>
-        </div>
-      )}
+        </span>
+        <span className="shrink-0 text-right">
+          {summary ? (
+            <>
+              {summary.lastBest && (
+                <span className="block font-display text-lg leading-tight font-bold tabular-nums text-primary-500">
+                  {summary.lastBest}
+                </span>
+              )}
+              <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-fg-faint">
+                {formatDate(summary.lastDate)}
+              </span>
+            </>
+          ) : (
+            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-fg-faint">
+              Not logged
+            </span>
+          )}
+        </span>
+      </span>
     </UnstyledButton>
   );
 };
